@@ -20,16 +20,17 @@
       radial-gradient(1100px 650px at 18% 10%, #1a7f6a55, transparent 60%),
       radial-gradient(1100px 650px at 82% 25%, #2a6cff44, transparent 60%),
       linear-gradient(160deg, var(--bg1), var(--bg2));
-    display:flex; align-items:center; justify-content:center;
-    padding:20px; overflow:hidden;
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:18px; overflow-x:hidden; overflow-y:auto;
   }
   .wrap{
     width:min(1320px,100%);
     display:grid;
     grid-template-columns: .82fr 1.08fr 1.05fr;
     gap:16px;
+    margin:0 auto;
   }
-  @media (max-width: 1100px){ .wrap{grid-template-columns:1fr; } body{overflow:auto;} }
+  @media (max-width: 1100px){ .wrap{grid-template-columns:1fr; } }
   .card{
     background:var(--card);
     border:1px solid var(--stroke);
@@ -159,12 +160,43 @@
   }
   .tabPane{display:none;}
   .tabPane.active{display:block;}
+  .panel{max-height:calc(100vh - 36px);}
+  .panel .tabPane{max-height:calc(100vh - 160px); overflow:auto; padding-right:4px;}
+  .panel .tabPane::-webkit-scrollbar{width:8px}
+  .panel .tabPane::-webkit-scrollbar-thumb{background:#ffffff2c;border-radius:999px}
   .panel h2{margin:0 0 10px 0; font-size:16px;}
   .panel p{margin:0 0 12px 0; color:var(--muted); font-size:13px; line-height:1.35;}
 
   /* split cosmetics */
   .split2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
   @media (max-width: 1100px){ .split2{grid-template-columns:1fr} }
+
+  #upgradeList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  @media (max-width: 1280px){ #upgradeList{grid-template-columns:1fr;} }
+
+  .shopCard{position:relative; transition:transform .22s ease, border-color .2s ease, box-shadow .25s ease;}
+  .shopCard:hover{transform:translateY(-3px)}
+  .shopCard.active{border-color:#35f0a3aa; box-shadow:0 0 0 1px #35f0a355, 0 16px 36px #00000075;}
+  .shopCard.pop{animation:shopPop .35s ease;}
+  @keyframes shopPop{0%{transform:scale(.96)}55%{transform:scale(1.03)}100%{transform:scale(1)}}
+  .shopPrice{font-weight:900;font-size:13px}
+  .rarity-common{box-shadow:inset 0 0 0 1px #ffffff14}
+  .rarity-rare{box-shadow:0 0 22px #39a0ff33, inset 0 0 0 1px #5ea8ff4a}
+  .rarity-epic{box-shadow:0 0 24px #b06bff33, inset 0 0 0 1px #c58bff4d}
+  .rarity-legend{box-shadow:0 0 28px #ffcf5a42, inset 0 0 0 1px #ffd77f59}
+  .eqBadge{position:absolute;top:10px;right:10px;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:900;background:#35f0a31c;border:1px solid #35f0a37a;color:#8effc6}
+
+  #leadersList{display:grid;gap:8px}
+  .leaderRow{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center}
+
+  @media (max-width: 430px){
+    body{padding:10px}
+    .card{padding:10px;border-radius:16px}
+    .tabs{gap:7px}
+    .tabBtn,.btn{font-size:12px;padding:8px 10px}
+    .panel{max-height:none}
+    .panel .tabPane{max-height:none;overflow:visible}
+  }
 
   /* Games */
   .gameBox{
@@ -314,8 +346,8 @@
   <div class="card">
     <div class="top">
       <div class="brand">
-        <h1>🐸 Frog Clicker — PRO (2D “как по рефу”)</h1>
-        <p>Клик по лягушке = очки. Реалистичный 2D-арт под твой референс (сонные глаза, текстура).</p>
+        <h1>🐸 Frog Clicker — PRO</h1>
+        <p>Клик по лягушке = очки. Обновлённый 2D-рендер с глубиной, мягким светом и текстурой.</p>
       </div>
       <div class="pill"><span class="dot"></span> OFFLINE OK</div>
     </div>
@@ -344,8 +376,8 @@
     </div>
 
     <div class="hint">
-      <b>Реальный звук “ква”:</b> если хочешь прямо настоящий — положи рядом с HTML файл <b>frog-croak.mp3</b>.
-      Тогда звук будет браться из него. Если файла нет — используется аккуратный синтез (fallback).
+      <b>Реальный звук “ква”:</b> файл <b>frog-croak.mp3</b> рядом с HTML включает натуральный аудиосэмпл.
+      Если файла нет — используется встроенный синтез.
     </div>
 
     <audio id="croakAudio" src="./frog-croak.mp3" preload="auto"></audio>
@@ -359,6 +391,7 @@
       <button class="tabBtn" data-tab="games">Мини-игры</button>
       <button class="tabBtn" data-tab="ach">Достижения</button>
       <button class="tabBtn" data-tab="ranks">Ранги</button>
+      <button class="tabBtn" data-tab="leaders">Лидеры</button>
       <button class="tabBtn" data-tab="set">Настройки</button>
       <div style="flex:1"></div>
       <button class="tabBtn primary" id="saveBtn">Сохранить</button>
@@ -471,6 +504,18 @@
       <div id="rankList" style="display:grid;gap:10px"></div>
     </div>
 
+    <div class="tabPane" id="tab-leaders">
+      <h2>Лидеры</h2>
+      <p>Локальная таблица рекордов текущего устройства.</p>
+      <div class="item" style="margin-bottom:10px">
+        <div class="btnRow">
+          <button class="btn primary" id="leaderUpdateBtn">Обновить мой результат</button>
+          <button class="btn danger" id="leaderResetBtn">Сброс таблицы</button>
+        </div>
+      </div>
+      <div id="leadersList"></div>
+    </div>
+
     <div class="tabPane" id="tab-set">
       <h2>Настройки</h2>
       <div class="item">
@@ -507,6 +552,17 @@
           <label class="small">UI <input type="range" id="volUi" min="0" max="1" step="0.05"></label>
         </div>
       </div>
+
+      <div class="item">
+        <div class="t">Уведомления</div>
+        <div class="s">Режим показа всплывающих событий</div>
+        <div class="row">
+          <select id="toastModeSelect">
+            <option value="all">Полный режим</option>
+            <option value="important">Тихий режим: только важные</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -517,7 +573,9 @@
 /* =========================
   CORE STATE / SAVE
 ========================= */
-const KEY = "frog_clicker_pro_save_v3";
+const KEY = "frog_clicker_pro_save_v5";
+const LEGACY_SAVE_KEYS = ["frog_clicker_pro_save_v4", "frog_clicker_pro_save_v3"];
+const LEADERBOARD_KEY = "frog_clicker_leaderboard_v1";
 
 const state = {
   points: 0,
@@ -544,7 +602,10 @@ const state = {
   cosmetics: {
     skin:"default",
     chainGold:false, cyberVisor:false, crown:false, monocle:false, spikes:false,
-    halo:false, horns:false, scar:false, angel:false, demon:false
+    halo:false, horns:false, scar:false, angel:false, demon:false,
+    bowTie:false, leafHat:false, respirator:false, pearlNecklace:false, captainCap:false,
+    flowerCrown:false, neonRing:false, bandana:false, earCuffs:false, whiskersPaint:false,
+    runeTattoo:false, bubblePipe:false
   },
   owned: {},
   _ach: {},
@@ -557,7 +618,8 @@ const state = {
     volumeMaster: 1,
     volumeCroak: 1,
     volumeAch: 0.9,
-    volumeUi: 0.8
+    volumeUi: 0.8,
+    toastMode: "all"
   },
 
   account: { nick:"", avatarDataUrl:"", bio:"" },
@@ -585,11 +647,18 @@ function deepMerge(target, src){
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 function load(){
-  const raw = localStorage.getItem(KEY);
+  let raw = localStorage.getItem(KEY);
+  if(!raw){
+    for(const legacyKey of LEGACY_SAVE_KEYS){
+      raw = localStorage.getItem(legacyKey);
+      if(raw) break;
+    }
+  }
   if(!raw) return;
   try{
     const d = JSON.parse(raw);
     deepMerge(state, d);
+    localStorage.setItem(KEY, JSON.stringify(state));
   }catch{}
 }
 
@@ -609,17 +678,24 @@ function nowDayKey(){
 ========================= */
 const toasts = document.getElementById("toasts");
 const toastLocks = new Set();
-function toast(title, subtitle, badge="INFO"){
+function shouldShowToast(opts={}){
+  const mode = state.settings?.toastMode || "all";
+  if(mode!=="important") return true;
+  if(opts.forceImportant) return true;
+  return false;
+}
+function toast(title, subtitle, badge="INFO", opts={}){
+  if(!shouldShowToast(opts)) return;
   const el = document.createElement("div");
   el.className = "toast";
   el.innerHTML = `<div class="t">${title}</div><div class="s">${subtitle}</div><div class="b">${badge}</div>`;
   toasts.appendChild(el);
   setTimeout(()=> el.remove(), 3600);
 }
-function toastOnce(key, title, subtitle, badge="INFO", lockMs=2500){
+function toastOnce(key, title, subtitle, badge="INFO", lockMs=2500, opts={}){
   if (toastLocks.has(key)) return;
   toastLocks.add(key);
-  toast(title, subtitle, badge);
+  toast(title, subtitle, badge, opts);
   setTimeout(()=>toastLocks.delete(key), lockMs);
 }
 
@@ -750,22 +826,27 @@ function currentRank(){
 const achievements = [
   { id:"first",   name:"Первый ква",  desc:"Сделай 1 клик", check:()=> state.stats.clicks>=1, reward:25 },
   { id:"c100",    name:"Сто кваков",  desc:"Сделай 100 кликов", check:()=> state.stats.clicks>=100, reward:150 },
-  { id:"c1000",   name:"Тысяча кваков", desc:"Сделай 1000 кликов", check:()=> state.stats.clicks>=1000, reward:850 },
+  { id:"c1000",   name:"Тысяча кваков", desc:"Сделай 1000 кликов", check:()=> state.stats.clicks>=1000, reward:850, major:true },
   { id:"crit25",  name:"Крит-монстр", desc:"Сделай 25 критов", check:()=> state.stats.crits>=25, reward:320 },
   { id:"combo10", name:"Комбо x10",   desc:"Дойди до комбо x10", check:()=> state.combo>=10, reward:280 },
-  { id:"lvl10",   name:"Уже серьёзно",desc:"Достигни 10 уровня", check:()=> state.level>=10, reward:650 },
-  { id:"rich5k",  name:"Богатый пруд",desc:"Накопи 5000 очков", check:()=> state.points>=5000, reward:1200 },
+  { id:"lvl10",   name:"Уже серьёзно",desc:"Достигни 10 уровня", check:()=> state.level>=10, reward:650, major:true },
+  { id:"rich5k",  name:"Богатый пруд",desc:"Накопи 5000 очков", check:()=> state.points>=5000, reward:1200, major:true },
   { id:"skin1",   name:"Стиль есть",  desc:"Купи любой скин", check:()=> Object.keys(state.owned||{}).some(k=>k.startsWith("skin_") && state.owned[k]), reward:500 },
-  { id:"acc3",    name:"Модник",      desc:"Купи 3 аксессуара", check:()=> Object.keys(state.owned||{}).filter(k=>!k.startsWith("skin_") && state.owned[k]).length>=3, reward:600 }
+  { id:"acc3",    name:"Модник",      desc:"Купи 3 аксессуара", check:()=> Object.keys(state.owned||{}).filter(k=>!k.startsWith("skin_") && state.owned[k]).length>=3, reward:600, major:true }
 ];
+const achievedThisSession = new Set();
 
 function grantAchievement(a){
-  if (state._ach[a.id]) return;
+  if (state._ach[a.id] || achievedThisSession.has(a.id)) return;
+  achievedThisSession.add(a.id);
   state._ach[a.id] = true;
   state.points += a.reward;
 
-  achSound();
-  toastOnce("ach_"+a.id, "Достижение получено!", `${a.name} — ${a.desc} (+${a.reward} очков)`, "ACHIEVEMENT", 4200);
+  const major = !!a.major || a.reward>=600;
+  if(state.settings?.toastMode!=="important" || major){
+    achSound();
+  }
+  toastOnce("ach_"+a.id, "Достижение получено!", `${a.name} — ${a.desc} (+${a.reward} очков)`, major ? "МАЖОР" : "ACHIEVEMENT", 4200, { forceImportant: major });
 
   updateUI();
   save();
@@ -824,28 +905,43 @@ function upgradePrice(u){
 ========================= */
 const cosmeticItems = [
   // Skins
-  { id:"skin_default", kind:"skin", rarity:"common", name:"Болотная (реф)", desc:"Сонные глаза + зерно + мягкие контуры", price:0,
-    apply:()=> state.cosmetics.skin="default" },
-  { id:"skin_moss", kind:"skin", rarity:"rare", name:"Мшистая", desc:"Пятна мха + влажный оттенок", price:450,
-    apply:()=> state.cosmetics.skin="moss" },
-  { id:"skin_poison", kind:"skin", rarity:"epic", name:"Ядовитая неон", desc:"Кислотный тон + лёгкое свечение", price:900,
-    apply:()=> state.cosmetics.skin="poison" },
-  { id:"skin_obsidian", kind:"skin", rarity:"legend", name:"Обсидиан", desc:"Тёмная глянцевая кожа", price:1400,
-    apply:()=> state.cosmetics.skin="obsidian" },
-  { id:"skin_ice", kind:"skin", rarity:"epic", name:"Лёд", desc:"Холодные блики + голубой тон", price:1000,
-    apply:()=> state.cosmetics.skin="ice" },
+  { id:"skin_default", kind:"skin", rarity:"common", name:"Болотная классика", desc:"Мягкая зелёная палитра", price:0, apply:()=> state.cosmetics.skin="default" },
+  { id:"skin_moss", kind:"skin", rarity:"rare", name:"Мшистая", desc:"Насыщенные мшистые пятна", price:450, apply:()=> state.cosmetics.skin="moss" },
+  { id:"skin_poison", kind:"skin", rarity:"epic", name:"Ядовитый неон", desc:"Кислотные отблески и свечение", price:900, apply:()=> state.cosmetics.skin="poison" },
+  { id:"skin_obsidian", kind:"skin", rarity:"legend", name:"Обсидиан", desc:"Тёмный глянец с холодным светом", price:1400, apply:()=> state.cosmetics.skin="obsidian" },
+  { id:"skin_ice", kind:"skin", rarity:"epic", name:"Лёд", desc:"Холодный градиент и матовые края", price:1000, apply:()=> state.cosmetics.skin="ice" },
+  { id:"skin_amber", kind:"skin", rarity:"rare", name:"Янтарная", desc:"Тёплый золотой тон", price:620, apply:()=> state.cosmetics.skin="amber" },
+  { id:"skin_lotus", kind:"skin", rarity:"rare", name:"Лотос", desc:"Розово-фиолетовые переходы", price:700, apply:()=> state.cosmetics.skin="lotus" },
+  { id:"skin_ash", kind:"skin", rarity:"common", name:"Пепельная", desc:"Сдержанная серая фактура", price:380, apply:()=> state.cosmetics.skin="ash" },
+  { id:"skin_jungle", kind:"skin", rarity:"epic", name:"Джунгли", desc:"Полосы и глубокая тень", price:1120, apply:()=> state.cosmetics.skin="jungle" },
+  { id:"skin_moon", kind:"skin", rarity:"legend", name:"Лунная роса", desc:"Серебристое неоновое сияние", price:1600, apply:()=> state.cosmetics.skin="moon" },
+  { id:"skin_ruby", kind:"skin", rarity:"epic", name:"Рубиновая", desc:"Красные переливы и лак", price:1180, apply:()=> state.cosmetics.skin="ruby" },
+  { id:"skin_sand", kind:"skin", rarity:"common", name:"Песчаная", desc:"Тёплый матовый камуфляж", price:330, apply:()=> state.cosmetics.skin="sand" },
+  { id:"skin_celestial", kind:"skin", rarity:"legend", name:"Небесный поток", desc:"Градиент с точками-звёздами", price:1750, apply:()=> state.cosmetics.skin="celestial" },
 
   // Accessories
   { id:"chain_gold", kind:"acc", rarity:"rare", name:"Золотая цепь", desc:"Толстая цепь и кулон", price:550, toggle:"chainGold" },
-  { id:"glasses_cyber", kind:"acc", rarity:"epic", name:"Кибер-визор", desc:"Подсветка + стекло", price:850, toggle:"cyberVisor" },
-  { id:"crown", kind:"acc", rarity:"legend", name:"Корона болота", desc:"Королевский сет", price:1500, toggle:"crown" },
-  { id:"monocle", kind:"acc", rarity:"rare", name:"Монокль", desc:"Стиль “босс”", price:480, toggle:"monocle" },
+  { id:"glasses_cyber", kind:"acc", rarity:"epic", name:"Кибер-визор", desc:"Неоновая маска на глаза", price:850, toggle:"cyberVisor" },
+  { id:"crown", kind:"acc", rarity:"legend", name:"Корона болота", desc:"Королевский силуэт", price:1500, toggle:"crown" },
+  { id:"monocle", kind:"acc", rarity:"rare", name:"Монокль", desc:"Классический акцент", price:480, toggle:"monocle" },
   { id:"spikes", kind:"acc", rarity:"epic", name:"Шипы", desc:"Агрессивный воротник", price:950, toggle:"spikes" },
   { id:"scar", kind:"acc", rarity:"common", name:"Боевой шрам", desc:"Опытный вид", price:320, toggle:"scar" },
-  { id:"halo", kind:"acc", rarity:"epic", name:"Нимб", desc:"Светлый образ", price:1000, toggle:"halo" },
-  { id:"horns", kind:"acc", rarity:"epic", name:"Рога", desc:"Демонический образ", price:1000, toggle:"horns" },
-  { id:"auraAngel", kind:"acc", rarity:"legend", name:"Ангельская аура", desc:"Световой ореол", price:1400, toggle:"angel" },
-  { id:"auraDemon", kind:"acc", rarity:"legend", name:"Демоническая аура", desc:"Тёмное свечение", price:1400, toggle:"demon" }
+  { id:"halo", kind:"acc", rarity:"epic", name:"Нимб", desc:"Светлая дуга", price:1000, toggle:"halo" },
+  { id:"horns", kind:"acc", rarity:"epic", name:"Рога", desc:"Тёмная форма", price:1000, toggle:"horns" },
+  { id:"auraAngel", kind:"acc", rarity:"legend", name:"Ангельская аура", desc:"Сияющий ореол", price:1400, toggle:"angel" },
+  { id:"auraDemon", kind:"acc", rarity:"legend", name:"Демоническая аура", desc:"Пульсирующее пламя", price:1400, toggle:"demon" },
+  { id:"bow_tie", kind:"acc", rarity:"common", name:"Бабочка", desc:"Яркий шейный бант", price:290, toggle:"bowTie" },
+  { id:"leaf_hat", kind:"acc", rarity:"rare", name:"Шляпа-лист", desc:"Большой лист кувшинки", price:610, toggle:"leafHat" },
+  { id:"respirator", kind:"acc", rarity:"rare", name:"Респиратор", desc:"Тактическая маска", price:640, toggle:"respirator" },
+  { id:"pearl_necklace", kind:"acc", rarity:"rare", name:"Жемчужное ожерелье", desc:"Кольцо из жемчужин", price:760, toggle:"pearlNecklace" },
+  { id:"captain_cap", kind:"acc", rarity:"epic", name:"Капитанская фуражка", desc:"Морской стиль", price:980, toggle:"captainCap" },
+  { id:"flower_crown", kind:"acc", rarity:"epic", name:"Цветочный венок", desc:"Венок из болотных цветов", price:920, toggle:"flowerCrown" },
+  { id:"neon_ring", kind:"acc", rarity:"legend", name:"Неон-кольцо", desc:"Плавающее кольцо света", price:1550, toggle:"neonRing" },
+  { id:"bandana", kind:"acc", rarity:"common", name:"Бандана", desc:"Контрастная повязка", price:300, toggle:"bandana" },
+  { id:"ear_cuffs", kind:"acc", rarity:"rare", name:"Ушные кольца", desc:"Металлические каффы", price:570, toggle:"earCuffs" },
+  { id:"whiskers_paint", kind:"acc", rarity:"common", name:"Боевой грим", desc:"Полосы на морде", price:350, toggle:"whiskersPaint" },
+  { id:"rune_tattoo", kind:"acc", rarity:"epic", name:"Рунический узор", desc:"Светящиеся руны", price:1080, toggle:"runeTattoo" },
+  { id:"bubble_pipe", kind:"acc", rarity:"rare", name:"Трубка пузырей", desc:"Пузыри при дыхании", price:690, toggle:"bubblePipe" }
 ];
 
 function rarityLabel(r){
@@ -896,18 +992,16 @@ function renderCosmeticCard(it){
   const active = isCosmeticActive(it);
   const price = Math.max(1, Math.round(it.price * (1 - (state.shopDiscount||0))));
   const div = document.createElement("div");
-  div.className="item";
+  div.className=`item shopCard rarity-${it.rarity} ${active ? "active" : ""}`;
   div.innerHTML = `
-    <div class="t">${active ? "✨ " : ""}${it.name}</div>
+    ${active ? '<div class="eqBadge">ЭКИП.</div>' : ""}
+    <div class="t">${it.name}</div>
     <div class="s">${it.desc}</div>
     <div class="row">
-      <span class="tag">${rarityLabel(it.rarity)}</span>
-      <span class="tag">${ownedFlag ? "Куплено" : "Цена: "+price}</span>
-      <button class="btn ${active ? "primary":""}">
-        ${ownedFlag ? (active ? "Снять/ВКЛ" : "Применить") : "Купить"}
-      </button>
+      <span class="shopPrice">${ownedFlag ? "Куплено" : ("Цена: "+price)}</span>
+      <button class="btn ${active ? "primary":""}">${ownedFlag ? (active ? "Снять" : "Применить") : "Купить"}</button>
     </div>`;
-  div.querySelector("button").addEventListener("click", ()=>{ uiBeep(); buyCosmetic(it); });
+  div.querySelector("button").addEventListener("click", ()=>{ uiBeep(); buyCosmetic(it); div.classList.remove("pop"); void div.offsetWidth; div.classList.add("pop"); });
   return div;
 }
 function renderShop(){
@@ -970,6 +1064,37 @@ function renderRanks(){
     box.appendChild(div);
   }
 }
+
+function loadLeaderboard(){
+  try{ return JSON.parse(localStorage.getItem(LEADERBOARD_KEY)||"[]"); }catch{return [];}
+}
+function saveLeaderboard(rows){
+  localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(rows.slice(0,20)));
+}
+function updateMyLeaderboardRow(){
+  const rows = loadLeaderboard();
+  const nick = (state.account.nick||"Безымянный").trim().slice(0,28) || "Безымянный";
+  const row = { nick, points: Math.floor(state.points), level: state.level, rank: currentRank().name, updated: Date.now() };
+  const existing = rows.findIndex(r=>r.nick===nick);
+  if(existing>=0) rows[existing]=row; else rows.push(row);
+  rows.sort((a,b)=> (b.points-a.points) || (b.level-a.level));
+  saveLeaderboard(rows);
+  renderLeaders();
+}
+function renderLeaders(){
+  const box = document.getElementById("leadersList");
+  if(!box) return;
+  const rows = loadLeaderboard().sort((a,b)=> (b.points-a.points) || (b.level-a.level)).slice(0,20);
+  box.innerHTML = "";
+  if(!rows.length){ box.innerHTML = '<div class="item"><div class="s">Таблица пуста. Сохраните первый результат.</div></div>'; return; }
+  rows.forEach((r,idx)=>{
+    const div = document.createElement("div");
+    div.className = "item leaderRow";
+    div.innerHTML = `<div class="t">${idx+1}</div><div><div class="t">${r.nick}</div><div class="s">${r.rank} · ур. ${r.level}</div></div><div class="tag">${Number(r.points||0).toLocaleString("ru-RU")}</div>`;
+    box.appendChild(div);
+  });
+}
+
 function renderUpgrades(){
   const box = document.getElementById("upgradeList");
   if(!box) return;
@@ -1015,7 +1140,7 @@ function addXP(x){
 
     const bonus = Math.round(10 + state.level*2);
     state.points += bonus;
-    toastOnce("lvl_"+state.level, "Новый уровень!", `Уровень ${state.level} (+${bonus} очков)`, "LEVEL UP", 2200);
+    toastOnce("lvl_"+state.level, "Новый уровень!", `Уровень ${state.level} (+${bonus} очков)`, "LEVEL UP", 2200, { forceImportant:true });
   }
 }
 function rollCrit(){ return Math.random() < state.critChance; }
@@ -1200,7 +1325,7 @@ document.getElementById("claimDaily").addEventListener("click", ()=>{
   if(state.meta.dailyClaimedDay === nowDayKey()) return;
   state.points += d.reward;
   state.meta.dailyClaimedDay = nowDayKey();
-  toast("Ежедневка выполнена!", `+${d.reward} очков`, "DAILY");
+  toast("Ежедневка выполнена!", `+${d.reward} очков`, "DAILY", { forceImportant:true });
   save(); updateUI();
 });
 
@@ -1223,12 +1348,14 @@ function initSettingsUI(){
   const volCroak = document.getElementById("volCroak");
   const volAch = document.getElementById("volAch");
   const volUi = document.getElementById("volUi");
+  const toastModeSelect = document.getElementById("toastModeSelect");
 
   autosaveSelect.value = String(state.settings.autosaveSec ?? 10);
   volMaster.value = state.settings.volumeMaster ?? 1;
   volCroak.value = state.settings.volumeCroak ?? 1;
   volAch.value = state.settings.volumeAch ?? 0.9;
   volUi.value = state.settings.volumeUi ?? 0.8;
+  toastModeSelect.value = state.settings.toastMode || "all";
 
   muteBtn.textContent = `Звук: ${state.muted ? "ВЫКЛ" : "ВКЛ"}`;
   toggleParticles.textContent = `Частицы: ${state.settings.particles ? "ВКЛ" : "ВЫКЛ"}`;
@@ -1270,6 +1397,11 @@ function initSettingsUI(){
     const next=order[(order.indexOf(cur)+1)%order.length];
     state.settings.fxQuality=next;
     fxQualityBtn.textContent=`FX: ${next}`;
+    save();
+  });
+
+  toastModeSelect.addEventListener("change", ()=>{
+    state.settings.toastMode = toastModeSelect.value;
     save();
   });
 
@@ -1417,6 +1549,16 @@ document.getElementById("saveBtn").addEventListener("click", ()=>{
   save();
   toast("Сохранено", "Прогресс сохранён", "SAVE");
 });
+document.getElementById("leaderUpdateBtn")?.addEventListener("click", ()=>{
+  uiBeep();
+  updateMyLeaderboardRow();
+  toast("Лидеры", "Результат обновлён", "RATING");
+});
+document.getElementById("leaderResetBtn")?.addEventListener("click", ()=>{
+  if(!confirm("Сбросить таблицу лидеров?")) return;
+  localStorage.removeItem(LEADERBOARD_KEY);
+  renderLeaders();
+});
 
 /* =========================
   UPDATE UI
@@ -1451,6 +1593,7 @@ function updateUI(full=true){
     renderAchievements();
     renderRanks();
     renderTitles();
+    renderLeaders();
   }
   updateProfileMeta();
   updateDailyUI();
@@ -1489,15 +1632,24 @@ function isInsideFrog(px,py){
   return body<=1.08 || head<=1.08;
 }
 function skinPalette(){
-  // base: matches your provided cartoon ref (soft green + speckles)
-  let base = {a:"#6fd27a", b:"#3da95b", belly:"#b8f0b8"};
-  if(state.cosmetics.skin==="moss") base = {a:"#7bc26e", b:"#2f8050", belly:"#bde7b2"};
-  if(state.cosmetics.skin==="poison") base = {a:"#7cff7a", b:"#27c27d", belly:"#c6ffb8"};
-  if(state.cosmetics.skin==="obsidian") base = {a:"#2b4b3b", b:"#0e241c", belly:"#335a4b"};
-  if(state.cosmetics.skin==="ice") base = {a:"#78d7d9", b:"#2a9bb0", belly:"#c8ffff"};
-  // angel/demon overlays
-  if(state.cosmetics.angel) base = {a:"#8af7b5", b:"#46c8a6", belly:"#d9ffe6"};
-  if(state.cosmetics.demon) base = {a:"#376a55", b:"#142d26", belly:"#3b7860"};
+  const skins = {
+    default:{a:"#6fd27a", b:"#3da95b", belly:"#b8f0b8", accent:"rgba(255,255,255,0.18)", style:"natural"},
+    moss:{a:"#7bc26e", b:"#2f8050", belly:"#bde7b2", accent:"rgba(212,255,214,0.13)", style:"spots"},
+    poison:{a:"#7cff7a", b:"#27c27d", belly:"#c6ffb8", accent:"rgba(120,255,198,0.2)", style:"neon"},
+    obsidian:{a:"#2b4b3b", b:"#0e241c", belly:"#335a4b", accent:"rgba(200,240,255,0.18)", style:"gloss"},
+    ice:{a:"#78d7d9", b:"#2a9bb0", belly:"#c8ffff", accent:"rgba(222,255,255,0.2)", style:"matte"},
+    amber:{a:"#d7a359", b:"#8c5526", belly:"#ffe1b0", accent:"rgba(255,210,130,0.22)", style:"gloss"},
+    lotus:{a:"#d286c3", b:"#6b4ca2", belly:"#f5d8ef", accent:"rgba(248,213,255,0.2)", style:"spots"},
+    ash:{a:"#9cadb4", b:"#5b6875", belly:"#d8e0e5", accent:"rgba(244,248,255,0.11)", style:"matte"},
+    jungle:{a:"#54b779", b:"#1e5f47", belly:"#c8f0bc", accent:"rgba(120,255,167,0.16)", style:"stripes"},
+    moon:{a:"#96acd9", b:"#36405f", belly:"#dae6ff", accent:"rgba(210,224,255,0.23)", style:"neon"},
+    ruby:{a:"#db5f5f", b:"#6e1f30", belly:"#ffc2c8", accent:"rgba(255,188,188,0.2)", style:"gloss"},
+    sand:{a:"#c1ad77", b:"#7f6a43", belly:"#eadfb8", accent:"rgba(255,244,199,0.13)", style:"matte"},
+    celestial:{a:"#76b6ff", b:"#463594", belly:"#d8f2ff", accent:"rgba(174,238,255,0.24)", style:"stars"}
+  };
+  let base = skins[state.cosmetics.skin] || skins.default;
+  if(state.cosmetics.angel) base = {a:"#8af7b5", b:"#46c8a6", belly:"#d9ffe6", accent:"rgba(230,255,245,0.2)", style:"neon"};
+  if(state.cosmetics.demon) base = {a:"#376a55", b:"#142d26", belly:"#3b7860", accent:"rgba(255,122,140,0.18)", style:"stripes"};
   return base;
 }
 function drawFrog(){
@@ -1586,7 +1738,7 @@ function drawFrog(){
 
   // speckle texture (ref style)
   const speckCount = state.settings.fxQuality==="low" ? 120 : (state.settings.fxQuality==="mid" ? 220 : 360);
-  fctx.globalAlpha = 0.22;
+  fctx.globalAlpha = 0.16;
   fctx.fillStyle = "rgba(0,0,0,0.55)";
   for(let i=0;i<speckCount;i++){
     const x = rand(-290,290);
@@ -1595,6 +1747,9 @@ function drawFrog(){
     fctx.beginPath(); fctx.arc(x,y,r,0,Math.PI*2); fctx.fill();
   }
   fctx.globalAlpha = 1;
+
+  // extra skin finish
+  drawSkinFinish(pal);
 
   // mouth line (flat, bored)
   fctx.strokeStyle="rgba(255,255,255,0.85)";
@@ -1612,31 +1767,42 @@ function drawFrog(){
   fctx.quadraticCurveTo(0, -6, 200, -36);
   fctx.stroke();
 
-  // eyes (droopy like ref)
+  // eyes (deeper rendering)
   function eye(x){
-    // eye base
-    const eg = fctx.createRadialGradient(x-30,-260, 18, x,-250, 110);
-    eg.addColorStop(0, "rgba(255,255,255,0.25)");
-    eg.addColorStop(0.28, pal.a);
-    eg.addColorStop(1, pal.b);
-    fctx.fillStyle=eg;
-    fctx.beginPath(); fctx.ellipse(x, -250, 90, 70, 0, 0, Math.PI*2); fctx.fill();
+    fctx.save();
+    fctx.translate(x, -230);
+    const eyeWhite = fctx.createRadialGradient(-10,-8, 8, 0,0, 70);
+    eyeWhite.addColorStop(0, "rgba(255,255,255,0.98)");
+    eyeWhite.addColorStop(1, "rgba(225,246,255,0.92)");
+    fctx.fillStyle=eyeWhite;
+    fctx.beginPath(); fctx.ellipse(0, 0, 86, 64, 0, 0, Math.PI*2); fctx.fill();
 
-    // white part (droopy lid)
-    fctx.fillStyle="rgba(245,250,255,0.95)";
-    fctx.beginPath(); fctx.ellipse(x, -252, 60, 44, 0, 0, Math.PI*2); fctx.fill();
+    const iris = fctx.createRadialGradient(8,8, 5, 0,0, 30);
+    iris.addColorStop(0, "rgba(75,70,58,1)");
+    iris.addColorStop(1, "rgba(20,20,20,1)");
+    fctx.fillStyle=iris;
+    fctx.beginPath(); fctx.ellipse(0, 8, 24, 28, 0, 0, Math.PI*2); fctx.fill();
 
-    // upper lid (green cap)
-    fctx.fillStyle = pal.b;
-    fctx.globalAlpha = 0.85;
+    fctx.fillStyle="rgba(255,255,255,0.95)";
+    fctx.beginPath(); fctx.ellipse(-8, -2, 5, 7, 0, 0, Math.PI*2); fctx.fill();
+    fctx.fillStyle="rgba(255,255,255,0.65)";
+    fctx.beginPath(); fctx.ellipse(5, 15, 2.5, 3.6, 0, 0, Math.PI*2); fctx.fill();
+
+    fctx.strokeStyle="rgba(17,42,28,0.95)";
+    fctx.lineWidth=16;
+    fctx.lineCap="round";
     fctx.beginPath();
-    fctx.ellipse(x, -270, 62, 40, 0, 0, Math.PI*2);
-    fctx.fill();
-    fctx.globalAlpha = 1;
+    fctx.moveTo(-90, -20);
+    fctx.quadraticCurveTo(0, -56, 90, -20);
+    fctx.stroke();
 
-    // iris tiny (sleepy)
-    fctx.fillStyle="rgba(40,120,180,0.9)";
-    fctx.beginPath(); fctx.ellipse(x+14, -240, 12, 10, 0, 0, Math.PI*2); fctx.fill();
+    fctx.strokeStyle="rgba(0,0,0,0.25)";
+    fctx.lineWidth=8;
+    fctx.beginPath();
+    fctx.moveTo(-66, 35);
+    fctx.quadraticCurveTo(0, 52, 66, 35);
+    fctx.stroke();
+    fctx.restore();
   }
   eye(-160); eye(160);
 
@@ -1676,6 +1842,38 @@ function drawFrog(){
   // FX on top
   drawFX();
 }
+function drawSkinFinish(pal){
+  fctx.save();
+  if(pal.style==="stripes"){
+    fctx.strokeStyle = "rgba(0,0,0,0.12)";
+    fctx.lineWidth = 18;
+    for(let i=-3;i<=3;i++){
+      fctx.beginPath();
+      fctx.moveTo(-300, i*62-20);
+      fctx.quadraticCurveTo(0, i*55+30, 300, i*62-20);
+      fctx.stroke();
+    }
+  }else if(pal.style==="spots"){
+    fctx.fillStyle = "rgba(0,0,0,0.14)";
+    for(let i=0;i<26;i++){
+      fctx.beginPath(); fctx.ellipse(rand(-250,250), rand(-220,220), rand(8,28), rand(6,20), rand(0,Math.PI), 0, Math.PI*2); fctx.fill();
+    }
+  }else if(pal.style==="stars"){
+    fctx.fillStyle = "rgba(255,255,255,0.55)";
+    for(let i=0;i<34;i++){
+      fctx.beginPath(); fctx.arc(rand(-250,250), rand(-230,180), rand(1,3), 0, Math.PI*2); fctx.fill();
+    }
+  }
+  if(pal.style==="gloss" || pal.style==="neon"){
+    fctx.globalCompositeOperation="screen";
+    const g=fctx.createLinearGradient(-260,-260,260,230);
+    g.addColorStop(0,pal.accent||"rgba(255,255,255,0.2)"); g.addColorStop(1,"rgba(255,255,255,0)");
+    fctx.fillStyle=g;
+    fctx.beginPath(); fctx.ellipse(0,-20,300,220,0,0,Math.PI*2); fctx.fill();
+  }
+  fctx.restore();
+}
+
 function drawAccessories(pal){
   // in frog local coords (already translated)
   // chain
@@ -1789,6 +1987,75 @@ function drawAccessories(pal){
     fctx.fill();
     fctx.restore();
   }
+  if(state.cosmetics.bowTie){
+    fctx.save(); fctx.translate(0,90);
+    fctx.fillStyle="rgba(220,52,90,0.95)";
+    fctx.beginPath(); fctx.moveTo(-20,0); fctx.lineTo(-90,-35); fctx.lineTo(-90,35); fctx.closePath(); fctx.fill();
+    fctx.beginPath(); fctx.moveTo(20,0); fctx.lineTo(90,-35); fctx.lineTo(90,35); fctx.closePath(); fctx.fill();
+    fctx.fillStyle="rgba(255,200,220,0.9)"; fctx.beginPath(); fctx.ellipse(0,0,20,18,0,0,Math.PI*2); fctx.fill();
+    fctx.restore();
+  }
+  if(state.cosmetics.leafHat){
+    fctx.save(); fctx.translate(0,-330); fctx.rotate(-0.18);
+    fctx.fillStyle="rgba(70,145,84,0.95)"; fctx.beginPath(); fctx.ellipse(0,0,170,62,0.2,0,Math.PI*2); fctx.fill();
+    fctx.strokeStyle="rgba(220,255,220,0.3)"; fctx.lineWidth=4; fctx.beginPath(); fctx.moveTo(-130,0); fctx.lineTo(140,0); fctx.stroke();
+    fctx.restore();
+  }
+  if(state.cosmetics.respirator){
+    fctx.save(); fctx.translate(0,-120);
+    fctx.fillStyle="rgba(40,50,65,0.92)"; fctx.roundRect(-120,-35,240,95,28); fctx.fill();
+    fctx.fillStyle="rgba(100,120,150,0.9)"; fctx.beginPath(); fctx.ellipse(-60,14,22,22,0,0,Math.PI*2); fctx.fill(); fctx.beginPath(); fctx.ellipse(60,14,22,22,0,0,Math.PI*2); fctx.fill();
+    fctx.restore();
+  }
+  if(state.cosmetics.pearlNecklace){
+    fctx.save(); fctx.translate(0,45); fctx.fillStyle="rgba(245,245,255,0.95)";
+    for(let i=-6;i<=6;i++){ const a=i*0.18; fctx.beginPath(); fctx.arc(Math.sin(a)*180, 80+Math.cos(a)*30, 12,0,Math.PI*2); fctx.fill(); }
+    fctx.restore();
+  }
+  if(state.cosmetics.captainCap){
+    fctx.save(); fctx.translate(0,-345);
+    fctx.fillStyle="rgba(248,248,252,0.97)"; fctx.roundRect(-140,-10,280,86,24); fctx.fill();
+    fctx.fillStyle="rgba(25,38,64,0.95)"; fctx.roundRect(-160,40,320,42,20); fctx.fill();
+    fctx.fillStyle="rgba(255,208,90,0.95)"; fctx.beginPath(); fctx.arc(0,31,14,0,Math.PI*2); fctx.fill();
+    fctx.restore();
+  }
+  if(state.cosmetics.flowerCrown){
+    fctx.save(); fctx.translate(0,-340);
+    for(let i=0;i<8;i++){ const x=-150+i*42; fctx.fillStyle=["#ff6fa8","#ffd166","#8af7b5","#87bfff"][i%4]; fctx.beginPath(); fctx.arc(x,40+Math.sin(i)*6,18,0,Math.PI*2); fctx.fill(); }
+    fctx.restore();
+  }
+  if(state.cosmetics.neonRing){
+    fctx.save(); fctx.translate(0,-80); fctx.globalCompositeOperation="screen";
+    fctx.strokeStyle="rgba(0,255,240,0.85)"; fctx.lineWidth=11; fctx.beginPath(); fctx.ellipse(0,0,290,180,0,0,Math.PI*2); fctx.stroke();
+    fctx.restore();
+  }
+  if(state.cosmetics.bandana){
+    fctx.save(); fctx.translate(0,-214);
+    fctx.fillStyle="rgba(180,32,54,0.92)"; fctx.roundRect(-220,-20,440,54,18); fctx.fill();
+    fctx.restore();
+  }
+  if(state.cosmetics.earCuffs){
+    fctx.save(); fctx.strokeStyle="rgba(230,230,235,0.9)"; fctx.lineWidth=8;
+    fctx.beginPath(); fctx.arc(-245,-170,20,0,Math.PI*2); fctx.stroke(); fctx.beginPath(); fctx.arc(245,-170,20,0,Math.PI*2); fctx.stroke();
+    fctx.restore();
+  }
+  if(state.cosmetics.whiskersPaint){
+    fctx.save(); fctx.strokeStyle="rgba(18,18,18,0.42)"; fctx.lineWidth=10; fctx.lineCap="round";
+    for(const y of [-80,-50,-20]){ fctx.beginPath(); fctx.moveTo(-250,y); fctx.lineTo(-120,y+12); fctx.stroke(); fctx.beginPath(); fctx.moveTo(250,y); fctx.lineTo(120,y+12); fctx.stroke(); }
+    fctx.restore();
+  }
+  if(state.cosmetics.runeTattoo){
+    fctx.save(); fctx.globalCompositeOperation="screen"; fctx.strokeStyle="rgba(132,200,255,0.65)"; fctx.lineWidth=6;
+    fctx.beginPath(); fctx.moveTo(-130,60); fctx.lineTo(-80,120); fctx.lineTo(-25,70); fctx.lineTo(20,130); fctx.lineTo(80,66); fctx.stroke();
+    fctx.restore();
+  }
+  if(state.cosmetics.bubblePipe){
+    fctx.save(); fctx.translate(130,-30);
+    fctx.strokeStyle="rgba(108,74,38,0.9)"; fctx.lineWidth=10; fctx.beginPath(); fctx.moveTo(0,0); fctx.quadraticCurveTo(42,36,65,14); fctx.stroke();
+    fctx.fillStyle="rgba(180,230,255,0.35)"; for(let i=0;i<4;i++){ fctx.beginPath(); fctx.arc(80+i*20,-14-i*16,8+i*2,0,Math.PI*2); fctx.fill(); }
+    fctx.restore();
+  }
+
   // scar
   if(state.cosmetics.scar){
     fctx.save();
