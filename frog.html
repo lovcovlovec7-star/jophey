@@ -265,6 +265,30 @@
     background:#00000022; color:var(--text);
     font-weight:900;
   }
+
+  .energyWrap{margin-top:8px}
+  .energyLine{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .energyBar{height:10px;border-radius:999px;background:#00000055;border:1px solid #ffffff22;overflow:hidden}
+  .energyBar>div{height:100%;background:linear-gradient(90deg,#35f0a3,#8bffb0);box-shadow:0 0 14px #35f0a37a;transition:width .2s ease}
+  .dimTag{background:linear-gradient(90deg,#7dd3ff,#c1f4ff);color:#05212d}
+
+  .shopTop{position:sticky;top:0;z-index:4;background:linear-gradient(180deg,#091320f0,#091320d2 72%,transparent);backdrop-filter:blur(6px);padding-bottom:8px;margin-bottom:8px}
+  .shopTabs{display:flex;gap:8px;flex-wrap:wrap}
+  .shopPane{display:none}
+  .shopPane.active{display:block}
+  .shopGrid{display:grid;gap:10px;max-height:58vh;overflow:auto;padding-right:6px}
+  .legendPulse{animation:legendPulse 2.1s ease-in-out infinite}
+  @keyframes legendPulse{0%,100%{box-shadow:0 0 0 1px #ffd16666,0 0 24px #ffd16633}50%{box-shadow:0 0 0 1px #ffd166aa,0 0 34px #ffd16680}}
+
+  .caseOpenFx{min-height:32px;font-weight:900;color:#d5f5ff}
+  .locationGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .locCard.locked{opacity:.6;filter:saturate(.75)}
+  .newsNew{display:inline-block;padding:3px 8px;border-radius:999px;background:#35f0a3;color:#062014;font-size:11px;font-weight:900;margin-left:8px}
+
+  .bjCards{display:flex;gap:8px;flex-wrap:wrap;min-height:42px}
+  .bjCard{padding:8px 10px;border-radius:10px;border:1px solid #ffffff2c;background:#0000002f;font-weight:900}
+  @media (max-width:430px){.locationGrid{grid-template-columns:1fr}}
+
 </style>
 </head>
 
@@ -366,6 +390,11 @@
         <div class="hint">За клик: <b id="ppc">1</b> · Крит: <b id="crit">10%</b> · Множ.: <b id="critMult">2.2x</b></div>
         <div class="hint">Комбо: <b id="combo">x1</b> · Автоклики/сек: <b id="auto">0</b></div>
         <div class="hint">Клики: <b id="clicks">0</b> · Криты: <b id="crits">0</b></div>
+        <div class="energyWrap">
+          <div class="energyLine"><span>Энергия</span><span id="energyText">100 / 100</span></div>
+          <div class="energyBar"><div id="energyFill" style="width:100%"></div></div>
+        </div>
+        <div class="hint">Алмазы: <b id="diamonds">0</b></div>
       </div>
       <div class="stat">
         <div class="k">Уровень</div>
@@ -392,6 +421,8 @@
       <button class="tabBtn" data-tab="ach">Достижения</button>
       <button class="tabBtn" data-tab="ranks">Ранги</button>
       <button class="tabBtn" data-tab="leaders">Лидеры</button>
+      <button class="tabBtn" data-tab="locations">Локации</button>
+      <button class="tabBtn" data-tab="news">Новости <span id="newsBadge" class="newsNew" style="display:none">new</span></button>
       <button class="tabBtn" data-tab="set">Настройки</button>
       <div style="flex:1"></div>
       <button class="tabBtn primary" id="saveBtn">Сохранить</button>
@@ -405,24 +436,26 @@
 
     <div class="tabPane" id="tab-shop">
       <h2>Магазин</h2>
-      <p>Скины отдельно, аксессуары отдельно. Редкости + более крутой визуал.</p>
-      <div class="split2">
-        <div>
-          <div class="item" style="margin-bottom:10px">
-            <div class="t">🎨 Скины</div>
-            <div class="s">Меняют стиль/текстуру тела</div>
-          </div>
-          <div id="skinShopSkins" style="display:grid;gap:10px"></div>
-        </div>
-        <div>
-          <div class="item" style="margin-bottom:10px">
-            <div class="t">🧩 Аксессуары</div>
-            <div class="s">Очки/цепи/корона/шипы/ауры</div>
-          </div>
-          <div id="skinShopAccs" style="display:grid;gap:10px"></div>
+      <p>Отдельные категории + кейсы за алмазы. Скролл внутри панели.</p>
+      <div class="shopTop">
+        <div class="shopTabs">
+          <button class="tabBtn primary shopTabBtn active" data-shop="acc">Аксессуары</button>
+          <button class="tabBtn shopTabBtn" data-shop="skins">Скины</button>
+          <button class="tabBtn shopTabBtn" data-shop="cases">Кейсы</button>
         </div>
       </div>
+      <div class="shopPane active" id="shop-pane-acc"><div id="skinShopAccs" class="shopGrid"></div></div>
+      <div class="shopPane" id="shop-pane-skins"><div id="skinShopSkins" class="shopGrid"></div></div>
+      <div class="shopPane" id="shop-pane-cases">
+        <div class="item" style="margin-bottom:10px">
+          <div class="t">Кейсы за алмазы</div>
+          <div class="s">Дропит скины/аксессуары. Дубликаты возвращают алмазы.</div>
+          <div class="caseOpenFx" id="caseResult">Открой кейс, чтобы получить косметику</div>
+        </div>
+        <div id="caseList" class="shopGrid"></div>
+      </div>
     </div>
+
 
     <div class="tabPane" id="tab-games">
       <h2>Мини-игры</h2>
@@ -432,9 +465,10 @@
         <button class="tabBtn active" data-subgame="flies">🪰 Охота</button>
         <button class="tabBtn" data-subgame="pads">🌿 Память</button>
         <button class="tabBtn" data-subgame="raid">⚡ Рейд</button>
+        <button class="tabBtn" data-subgame="blackjack">🂡 Blackjack</button>
       </div>
 
-      <div class="subPane active" id="subgame-flies">
+<div class="subPane active" id="subgame-flies">
         <div class="gameBox">
           <div class="gameTop">
             <div>
@@ -490,6 +524,26 @@
           </div>
         </div>
       </div>
+
+      <div class="subPane" id="subgame-blackjack">
+        <div class="gameBox">
+          <div class="gameTop">
+            <div>
+              <div style="font-weight:950">🂡 Blackjack</div>
+              <div class="small">Набери ближе к 21, чем дилер, не перебирая.</div>
+            </div>
+            <div class="btnRow">
+              <button class="btn primary" id="bjDeal">Раздать</button>
+              <button class="btn" id="bjHit">Hit</button>
+              <button class="btn" id="bjStand">Stand</button>
+            </div>
+          </div>
+          <div class="item"><div class="small">Ставка очков</div><input id="bjBet" type="number" min="50" step="50" value="200" style="width:140px"></div>
+          <div class="item"><div class="t">Игрок</div><div class="bjCards" id="bjPlayer"></div><div class="small" id="bjPlayerScore">0</div></div>
+          <div class="item"><div class="t">Дилер</div><div class="bjCards" id="bjDealer"></div><div class="small" id="bjDealerScore">0</div></div>
+          <div class="item"><div class="t" id="bjState">Нажми «Раздать»</div></div>
+        </div>
+      </div>
     </div>
 
     <div class="tabPane" id="tab-ach">
@@ -506,14 +560,26 @@
 
     <div class="tabPane" id="tab-leaders">
       <h2>Лидеры</h2>
-      <p>Локальная таблица рекордов текущего устройства.</p>
+      <p>Автообновляемая локальная таблица рекордов текущего устройства.</p>
       <div class="item" style="margin-bottom:10px">
         <div class="btnRow">
-          <button class="btn primary" id="leaderUpdateBtn">Обновить мой результат</button>
+          <span class="tag">Обновление: автоматически</span>
           <button class="btn danger" id="leaderResetBtn">Сброс таблицы</button>
         </div>
       </div>
       <div id="leadersList"></div>
+    </div>
+
+
+    <div class="tabPane" id="tab-locations">
+      <h2>Локации и атмосфера</h2>
+      <p>Локации открываются по прогрессу и меняют визуал + музыкальное настроение.</p>
+      <div class="locationGrid" id="locationList"></div>
+    </div>
+
+    <div class="tabPane" id="tab-news">
+      <h2>Новости / версии</h2>
+      <div id="newsList" style="display:grid;gap:10px"></div>
     </div>
 
     <div class="tabPane" id="tab-set">
@@ -550,7 +616,9 @@
           <label class="small">Ква <input type="range" id="volCroak" min="0" max="1" step="0.05"></label>
           <label class="small">Ачивки <input type="range" id="volAch" min="0" max="1" step="0.05"></label>
           <label class="small">UI <input type="range" id="volUi" min="0" max="1" step="0.05"></label>
+          <label class="small">Музыка <input type="range" id="volMusic" min="0" max="1" step="0.05"></label>
         </div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="musicToggleBtn">Музыка: ВКЛ</button></div>
       </div>
 
       <div class="item">
@@ -597,6 +665,15 @@ const state = {
   shopDiscount: 0,
   minigameBonus: 0,
 
+  energy: 100,
+  energyMax: 100,
+  energyRegen: 6,
+  clickEnergyCost: 1,
+  diamonds: 0,
+  dust: 0,
+  bestPointsAllTime: 0,
+  activeLocation: "swamp",
+
   stats: { clicks:0, crits:0 },
 
   cosmetics: {
@@ -619,10 +696,12 @@ const state = {
     volumeCroak: 1,
     volumeAch: 0.9,
     volumeUi: 0.8,
+    volumeMusic: 0.5,
+    musicOn: true,
     toastMode: "all"
   },
 
-  account: { nick:"", avatarDataUrl:"", bio:"" },
+  account: { nick:"", avatarDataUrl:"", bio:"", builtInAvatar:"" },
   meta: {
     createdAt: Date.now(),
     title: "Новичок болота",
@@ -631,7 +710,8 @@ const state = {
     dailyClaimedDay: ""
   },
 
-  event: { id:"none", until:0 }
+  event: { id:"none", until:0 },
+  newsSeenVersion: ""
 };
 
 function deepMerge(target, src){
@@ -658,6 +738,13 @@ function load(){
   try{
     const d = JSON.parse(raw);
     deepMerge(state, d);
+    state.energyMax = Math.max(40, Number(state.energyMax)||100);
+    state.energy = clamp(Number(state.energy)||state.energyMax, 0, state.energyMax);
+    state.energyRegen = Math.max(1, Number(state.energyRegen)||6);
+    state.clickEnergyCost = clamp(Number(state.clickEnergyCost)||1, 0.2, 3);
+    state.diamonds = Math.max(0, Math.floor(Number(state.diamonds)||0));
+    state.bestPointsAllTime = Math.max(Number(state.bestPointsAllTime)||0, Number(state.points)||0);
+    state.activeLocation ||= "swamp";
     localStorage.setItem(KEY, JSON.stringify(state));
   }catch{}
 }
@@ -791,6 +878,55 @@ function frogCroak(power=1){
   o1.stop(t+0.32); o2.stop(t+0.32);
 }
 
+const locations = [
+  { id:"swamp", name:"Болото", req:()=>true, accentA:"#35f0a3", accentB:"#1ac8ff", vibe:190 },
+  { id:"dirty", name:"Грязное болото", req:()=>state.level>=6, accentA:"#98c267", accentB:"#87633a", vibe:140 },
+  { id:"space", name:"Космос", req:()=>state.level>=14 || state.points>=150000, accentA:"#8ea3ff", accentB:"#8a4dff", vibe:260 },
+  { id:"hell", name:"Ад", req:()=>state.level>=22 || (state._ach?.rich5k), accentA:"#ff6b5f", accentB:"#f72a7a", vibe:96 },
+  { id:"heaven", name:"Рай", req:()=>state.level>=28, accentA:"#b2fff0", accentB:"#79b8ff", vibe:320 }
+];
+
+const versionNotes = [
+  { v:"2.0.0", date:"2026-02-23", points:["Живая лягушка: моргание, взгляд за курсором, эмоции","Добавлена энергия и анти-спам кликов","Магазин разбит на вкладки + добавлены кейсы за алмазы","Появились локации с атмосферой и музыкой","Добавлены Blackjack и улучшенный раннер"] },
+  { v:"2.1.0", date:"2026-02-24", points:["Автообновляемый лидерборд с рекордом за всё время","Новости/версии с отметкой new","Тихий режим оставлен только для важных событий"] }
+];
+const CURRENT_VERSION = versionNotes[0].v;
+
+let musicNodes = null;
+function updateLocationTheme(){
+  const loc = locations.find(l=>l.id===state.activeLocation) || locations[0];
+  document.documentElement.style.setProperty('--accentA', loc.accentA);
+  document.documentElement.style.setProperty('--accentB', loc.accentB);
+}
+function ensureMusic(){
+  ensureAudio();
+  if(musicNodes) return;
+  const master = audioCtx.createGain();
+  const osc1 = audioCtx.createOscillator();
+  const osc2 = audioCtx.createOscillator();
+  const lfo = audioCtx.createOscillator();
+  const lfoGain = audioCtx.createGain();
+  master.gain.value = 0;
+  osc1.type = 'triangle'; osc2.type = 'sine';
+  osc1.frequency.value = 190; osc2.frequency.value = 95;
+  lfo.type = 'sine'; lfo.frequency.value = 0.13;
+  lfoGain.gain.value = 18;
+  lfo.connect(lfoGain); lfoGain.connect(osc1.frequency);
+  osc1.connect(master); osc2.connect(master); master.connect(audioCtx.destination);
+  osc1.start(); osc2.start(); lfo.start();
+  musicNodes = {master,osc1,osc2};
+}
+function refreshMusic(){
+  if(!state.settings.musicOn || state.muted){ if(musicNodes) musicNodes.master.gain.value = 0; return; }
+  ensureMusic();
+  const loc = locations.find(l=>l.id===state.activeLocation) || locations[0];
+  const vol = (state.settings.volumeMaster||1) * (state.settings.volumeMusic||0.5);
+  const t = audioCtx.currentTime;
+  musicNodes.osc1.frequency.setTargetAtTime(loc.vibe, t, 0.6);
+  musicNodes.osc2.frequency.setTargetAtTime(Math.max(50, loc.vibe*0.53), t, 0.8);
+  musicNodes.master.gain.setTargetAtTime(0.05*vol, t, 0.6);
+}
+
 /* =========================
   RANKS / TITLES
 ========================= */
@@ -825,14 +961,14 @@ function currentRank(){
 ========================= */
 const achievements = [
   { id:"first",   name:"Первый ква",  desc:"Сделай 1 клик", check:()=> state.stats.clicks>=1, reward:25 },
-  { id:"c100",    name:"Сто кваков",  desc:"Сделай 100 кликов", check:()=> state.stats.clicks>=100, reward:150 },
-  { id:"c1000",   name:"Тысяча кваков", desc:"Сделай 1000 кликов", check:()=> state.stats.clicks>=1000, reward:850, major:true },
-  { id:"crit25",  name:"Крит-монстр", desc:"Сделай 25 критов", check:()=> state.stats.crits>=25, reward:320 },
-  { id:"combo10", name:"Комбо x10",   desc:"Дойди до комбо x10", check:()=> state.combo>=10, reward:280 },
-  { id:"lvl10",   name:"Уже серьёзно",desc:"Достигни 10 уровня", check:()=> state.level>=10, reward:650, major:true },
-  { id:"rich5k",  name:"Богатый пруд",desc:"Накопи 5000 очков", check:()=> state.points>=5000, reward:1200, major:true },
-  { id:"skin1",   name:"Стиль есть",  desc:"Купи любой скин", check:()=> Object.keys(state.owned||{}).some(k=>k.startsWith("skin_") && state.owned[k]), reward:500 },
-  { id:"acc3",    name:"Модник",      desc:"Купи 3 аксессуара", check:()=> Object.keys(state.owned||{}).filter(k=>!k.startsWith("skin_") && state.owned[k]).length>=3, reward:600, major:true }
+  { id:"c1k",    name:"Разгон",  desc:"Сделай 1000 кликов", check:()=> state.stats.clicks>=1000, reward:220 },
+  { id:"c20k",   name:"Сила болота", desc:"Сделай 20 000 кликов", check:()=> state.stats.clicks>=20000, reward:1800, major:true },
+  { id:"crit400",  name:"Крит-монстр", desc:"Сделай 400 критов", check:()=> state.stats.crits>=400, reward:1400, major:true },
+  { id:"combo20", name:"Комбо x20",   desc:"Дойди до комбо x20", check:()=> state.combo>=20, reward:900, major:true },
+  { id:"lvl25",   name:"Уже серьёзно",desc:"Достигни 25 уровня", check:()=> state.level>=25, reward:1500, major:true },
+  { id:"rich1m",  name:"Богатый пруд",desc:"Накопи 1 000 000 очков", check:()=> state.points>=1000000, reward:5000, major:true },
+  { id:"diamonds",  name:"Каменный запас",desc:"Накопи 500 алмазов", check:()=> state.diamonds>=500, reward:2600, major:true },
+  { id:"acc8",    name:"Модник",      desc:"Купи 8 аксессуаров", check:()=> Object.keys(state.owned||{}).filter(k=>!k.startsWith("skin_") && state.owned[k]).length>=8, reward:1100, major:true }
 ];
 const achievedThisSession = new Set();
 
@@ -841,8 +977,9 @@ function grantAchievement(a){
   achievedThisSession.add(a.id);
   state._ach[a.id] = true;
   state.points += a.reward;
-
   const major = !!a.major || a.reward>=600;
+  if(major){ state.diamonds += Math.max(2, Math.floor(a.reward/650)); }
+
   if(state.settings?.toastMode!=="important" || major){
     achSound();
   }
@@ -866,7 +1003,7 @@ const upgrades = [
     level:()=>state.up_ppc1||0, buy(){ state.ppc += 1; state.up_ppc1=(state.up_ppc1||0)+1; } },
   { id:"ppc5", name:"+5 клик", desc:"Средняя прокачка клика", base: 120, scale: 1.22,
     level:()=>state.up_ppc5||0, buy(){ state.ppc += 5; state.up_ppc5=(state.up_ppc5||0)+1; } },
-  { id:"ppc20", name:"+20 клик", desc:"Серьёзный буст клика", base: 520, scale: 1.27,
+  { id:"ppc20", name:"+20 клик", desc:"Серьёзный буст клика", base: 2200, scale: 1.32,
     level:()=>state.up_ppc20||0, buy(){ state.ppc += 20; state.up_ppc20=(state.up_ppc20||0)+1; } },
 
   { id:"critChance", name:"+2% крит", desc:"Шанс крита (до 55%)", base: 180, scale: 1.30,
@@ -877,7 +1014,7 @@ const upgrades = [
   { id:"comboTime", name:"+0.15с комбо", desc:"Комбо дольше не спадает", base: 220, scale: 1.28,
     level:()=>state.up_comboTime||0, buy(){ state.comboDecayMs = Math.min(3500, state.comboDecayMs + 150); state.up_comboTime=(state.up_comboTime||0)+1; } },
 
-  { id:"autoclick", name:"Автокликер +1/сек", desc:"Пассивный доход", base: 650, scale: 1.45,
+  { id:"autoclick", name:"Автокликер +1/сек", desc:"Пассивный доход", base: 3200, scale: 1.48,
     level:()=>state.up_autoclick||0, buy(){ state.autoClickers += 1; state.up_autoclick=(state.up_autoclick||0)+1; } },
 
   { id:"xpBoost", name:"+10% XP", desc:"Уровень растёт быстрее (до x3)", base: 340, scale: 1.35,
@@ -889,6 +1026,15 @@ const upgrades = [
   { id:"shopDiscount", name:"Скидка 1%", desc:"Удешевляет покупки (до 35%)", base: 900, scale: 1.55,
     level:()=>state.up_shopDiscount||0, buy(){ state.shopDiscount = Math.min(0.35, state.shopDiscount + 0.01); state.up_shopDiscount=(state.up_shopDiscount||0)+1; } },
 
+
+  { id:"energyMax", name:"+15 макс. энергия", desc:"Длиннее активная серия кликов", base: 900, scale: 1.36,
+    level:()=>state.up_energyMax||0, buy(){ state.energyMax = Math.min(420, state.energyMax + 15); state.energy = Math.min(state.energyMax, state.energy + 12); state.up_energyMax=(state.up_energyMax||0)+1; } },
+
+  { id:"energyRegen", name:"+0.7 реген/сек", desc:"Энергия быстрее восстанавливается", base: 1300, scale: 1.44,
+    level:()=>state.up_energyRegen||0, buy(){ state.energyRegen = Math.min(28, state.energyRegen + 0.7); state.up_energyRegen=(state.up_energyRegen||0)+1; } },
+
+  { id:"energyClickCost", name:"-0.08 расход/клик", desc:"Клики тратят меньше энергии", base: 1700, scale: 1.42,
+    level:()=>state.up_energyClickCost||0, buy(){ state.clickEnergyCost = Math.max(0.3, state.clickEnergyCost - 0.08); state.up_energyClickCost=(state.up_energyClickCost||0)+1; } },
   { id:"miniBonus", name:"+5% мини-игры", desc:"Награда мини-игр выше (до x2.5)", base: 520, scale: 1.38,
     level:()=>state.up_miniBonus||0, buy(){ state.minigameBonus = Math.min(2.5, state.minigameBonus + 0.05); state.up_miniBonus=(state.up_miniBonus||0)+1; } }
 ];
@@ -944,6 +1090,13 @@ const cosmeticItems = [
   { id:"bubble_pipe", kind:"acc", rarity:"rare", name:"Трубка пузырей", desc:"Пузыри при дыхании", price:690, toggle:"bubblePipe" }
 ];
 
+const caseTypes = [
+  { id:"case_common", name:"Обычный кейс", price:30, rarities:["common","common","rare"] },
+  { id:"case_rare", name:"Редкий кейс", price:90, rarities:["rare","rare","epic"] },
+  { id:"case_epic", name:"Эпический кейс", price:180, rarities:["rare","epic","epic","legend"] },
+  { id:"case_legend", name:"Легендарный кейс", price:360, rarities:["epic","legend","legend"] }
+];
+
 function rarityLabel(r){
   if (r==="legend") return "Легендарный";
   if (r==="epic") return "Эпик";
@@ -982,7 +1135,8 @@ function buyCosmetic(it){
     }
     state.points -= price;
     state.owned[it.id]=true;
-    toastOnce("buy_"+it.id, "Куплено!", it.name, "SHOP", 1400);
+    if(price >= 1200) frogLife.happyUntil = Date.now()+1800;
+    toastOnce("buy_"+it.id, "Куплено!", it.name, "SHOP", 1400, { forceImportant: price>=1800 });
   }
   useCosmetic(it);
   checkAchievements();
@@ -1004,15 +1158,52 @@ function renderCosmeticCard(it){
   div.querySelector("button").addEventListener("click", ()=>{ uiBeep(); buyCosmetic(it); div.classList.remove("pop"); void div.offsetWidth; div.classList.add("pop"); });
   return div;
 }
+function openCase(caseId){
+  const cs = caseTypes.find(c=>c.id===caseId);
+  if(!cs) return;
+  if(state.diamonds < cs.price){ toast("Не хватает алмазов", `Нужно ${cs.price}`, "CASE"); return; }
+  state.diamonds -= cs.price;
+  const pool = cosmeticItems.filter(it=> cs.rarities.includes(it.rarity));
+  const drop = pool[Math.floor(Math.random()*pool.length)] || cosmeticItems[0];
+  const caseResult = document.getElementById("caseResult");
+  let rewardText = `${drop.name}`;
+  if(own(drop.id)){
+    const comp = Math.max(5, Math.round(cs.price*0.45));
+    state.diamonds += comp;
+    rewardText += ` · дубликат (+${comp} алм.)`;
+  }else{
+    state.owned[drop.id] = true;
+  }
+  if(caseResult){ caseResult.textContent = `Дроп: ${rewardText}`; }
+  const major = drop.rarity==="legend" || drop.rarity==="epic";
+  toast("Кейс открыт", rewardText, "CASE", { forceImportant: major });
+  if(major) frogCroak(1.2);
+  save(); updateUI(false); renderShop();
+}
+function renderCaseList(){
+  const box = document.getElementById("caseList");
+  if(!box) return;
+  box.innerHTML = "";
+  caseTypes.forEach(cs=>{
+    const div = document.createElement("div");
+    div.className = `item shopCard ${cs.id.includes("legend")?"legendPulse":""}`;
+    div.innerHTML = `<div class="t">${cs.name}</div><div class="s">Шанс редкого дропа растёт по типу кейса</div><div class="row"><span class="shopPrice">${cs.price} 💎</span><button class="btn primary">Открыть</button></div>`;
+    div.querySelector('button').addEventListener('click', ()=>{ uiBeep(); openCase(cs.id); });
+    box.appendChild(div);
+  });
+}
 function renderShop(){
   const skinsBox = document.getElementById("skinShopSkins");
   const accsBox = document.getElementById("skinShopAccs");
   if(!skinsBox || !accsBox) return;
   skinsBox.innerHTML=""; accsBox.innerHTML="";
-  for(const it of cosmeticItems){
+  const order = {common:0, rare:1, epic:2, legend:3};
+  const sorted = [...cosmeticItems].sort((a,b)=> (order[a.rarity]-order[b.rarity]) || (a.price-b.price));
+  for(const it of sorted){
     const card = renderCosmeticCard(it);
     (it.kind==="skin" ? skinsBox : accsBox).appendChild(card);
   }
+  renderCaseList();
 }
 
 /* =========================
@@ -1030,6 +1221,9 @@ const clicksEl = document.getElementById("clicks");
 const critsEl  = document.getElementById("crits");
 const xpBar    = document.getElementById("xpBar");
 const xpText   = document.getElementById("xpText");
+const energyText = document.getElementById("energyText");
+const energyFill = document.getElementById("energyFill");
+const diamondsEl = document.getElementById("diamonds");
 
 function renderAchievements(){
   const box = document.getElementById("achList");
@@ -1071,28 +1265,66 @@ function loadLeaderboard(){
 function saveLeaderboard(rows){
   localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(rows.slice(0,20)));
 }
-function updateMyLeaderboardRow(){
-  const rows = loadLeaderboard();
+let leaderboardLastSync = 0;
+let leaderboardLastPoints = -1;
+function autoUpdateLeaderboard(){
+  const t = Date.now();
+  if(t - leaderboardLastSync < 1800 && Math.floor(state.points)===leaderboardLastPoints) return;
+  leaderboardLastSync = t;
+  leaderboardLastPoints = Math.floor(state.points);
   const nick = (state.account.nick||"Безымянный").trim().slice(0,28) || "Безымянный";
-  const row = { nick, points: Math.floor(state.points), level: state.level, rank: currentRank().name, updated: Date.now() };
-  const existing = rows.findIndex(r=>r.nick===nick);
-  if(existing>=0) rows[existing]=row; else rows.push(row);
-  rows.sort((a,b)=> (b.points-a.points) || (b.level-a.level));
+  if(!nick) return;
+  const rows = loadLeaderboard();
+  state.bestPointsAllTime = Math.max(state.bestPointsAllTime||0, state.points||0);
+  const row = { nick, best: Math.floor(state.bestPointsAllTime||0), current: Math.floor(state.points||0), level: state.level, rank: currentRank().name, updated: Date.now() };
+  const i = rows.findIndex(r=>r.nick===nick);
+  if(i>=0) rows[i]=row; else rows.push(row);
+  rows.sort((a,b)=> (Number(b.best||b.points||0)-Number(a.best||a.points||0)) || (Number(b.current||0)-Number(a.current||0)));
   saveLeaderboard(rows);
-  renderLeaders();
 }
 function renderLeaders(){
   const box = document.getElementById("leadersList");
   if(!box) return;
-  const rows = loadLeaderboard().sort((a,b)=> (b.points-a.points) || (b.level-a.level)).slice(0,20);
+  const rows = loadLeaderboard().sort((a,b)=> (Number(b.best||b.points||0)-Number(a.best||a.points||0)) || (Number(b.current||0)-Number(a.current||0))).slice(0,20);
   box.innerHTML = "";
-  if(!rows.length){ box.innerHTML = '<div class="item"><div class="s">Таблица пуста. Сохраните первый результат.</div></div>'; return; }
+  if(!rows.length){ box.innerHTML = '<div class="item"><div class="s">Таблица пуста. Прогресс появится автоматически.</div></div>'; return; }
   rows.forEach((r,idx)=>{
+    const best = Number(r.best||r.points||0);
+    const cur = Number(r.current||r.points||0);
     const div = document.createElement("div");
     div.className = "item leaderRow";
-    div.innerHTML = `<div class="t">${idx+1}</div><div><div class="t">${r.nick}</div><div class="s">${r.rank} · ур. ${r.level}</div></div><div class="tag">${Number(r.points||0).toLocaleString("ru-RU")}</div>`;
+    div.innerHTML = `<div class="t">${idx+1}</div><div><div class="t">${r.nick}</div><div class="s">Рекорд: ${best.toLocaleString("ru-RU")} · Сейчас: ${cur.toLocaleString("ru-RU")} · ${r.rank} · ур. ${r.level}</div></div><div class="tag">${best.toLocaleString("ru-RU")}</div>`;
     box.appendChild(div);
   });
+}
+
+
+function renderLocations(){
+  const box = document.getElementById('locationList');
+  if(!box) return;
+  box.innerHTML='';
+  locations.forEach(loc=>{
+    const unlocked = loc.req();
+    const active = state.activeLocation===loc.id;
+    const div = document.createElement('div');
+    div.className = `item locCard ${unlocked?'':'locked'} ${active?'active':''}`;
+    div.innerHTML = `<div class="t">${loc.name}</div><div class="s">${unlocked?'Открыта':'Нужно больше прогресса'}</div><div class="row"><button class="btn ${active?'primary':''}" ${unlocked?'':'disabled'}>${active?'Активна':'Выбрать'}</button></div>`;
+    div.querySelector('button').addEventListener('click', ()=>{ if(!unlocked) return; uiBeep(); state.activeLocation=loc.id; updateLocationTheme(); refreshMusic(); updateUI(false); save(); });
+    box.appendChild(div);
+  });
+}
+function renderNews(){
+  const box = document.getElementById('newsList');
+  if(!box) return;
+  box.innerHTML='';
+  versionNotes.forEach(n=>{
+    const div = document.createElement('div');
+    div.className='item';
+    div.innerHTML = `<div class="t">v${n.v} · ${n.date}</div><ul style="margin:8px 0 0 20px">${n.points.map(p=>`<li class="s">${p}</li>`).join('')}</ul>`;
+    box.appendChild(div);
+  });
+  const badge = document.getElementById('newsBadge');
+  if(badge) badge.style.display = state.newsSeenVersion===CURRENT_VERSION ? 'none' : 'inline-block';
 }
 
 function renderUpgrades(){
@@ -1160,8 +1392,16 @@ function clickLogic(mult = 1){
   const crit = rollCrit();
   const comboBonus = 1 + (state.combo - 1) * 0.08; // мягкий бонус
   const safeMult = Math.min(mult, 2.2);
+  const cost = Math.max(0.2, state.clickEnergyCost||1);
+  let energyFactor = 1;
+  if(state.energy >= cost){
+    state.energy -= cost;
+  }else{
+    energyFactor = 0.1;
+    frogLife.angryUntil = now + 900;
+  }
 
-  let gain = state.ppc * comboBonus * safeMult;
+  let gain = state.ppc * comboBonus * safeMult * energyFactor;
   if(crit) gain *= (state.critMult||2.2);
   gain = Math.max(1, Math.round(gain));
 
@@ -1169,9 +1409,11 @@ function clickLogic(mult = 1){
   gain *= eventClickMultiplier();
 
   state.points += Math.round(gain);
+  state.bestPointsAllTime = Math.max(state.bestPointsAllTime||0, state.points);
   state.stats.clicks++;
   if(crit) state.stats.crits++;
 
+  if(crit || gain > state.ppc*2.5) frogLife.happyUntil = now + 1200;
   addXP(1 + (crit?1:0));
 
   // bonus drop
@@ -1192,6 +1434,7 @@ function clickLogic(mult = 1){
 
 setInterval(()=>{
   if(Date.now() - state.comboLastHit > state.comboDecayMs) state.combo = 1;
+  state.energy = clamp(state.energy + (state.energyRegen||6)*0.25, 0, state.energyMax||100);
   updateUI(false);
 }, 250);
 
@@ -1324,8 +1567,10 @@ document.getElementById("claimDaily").addEventListener("click", ()=>{
   if(!d || !d.done) return;
   if(state.meta.dailyClaimedDay === nowDayKey()) return;
   state.points += d.reward;
+  const dia = Math.max(1, Math.floor(d.reward/300));
+  state.diamonds += dia;
   state.meta.dailyClaimedDay = nowDayKey();
-  toast("Ежедневка выполнена!", `+${d.reward} очков`, "DAILY", { forceImportant:true });
+  toast("Ежедневка выполнена!", `+${d.reward} очков и +${dia} алм.`, "DAILY", { forceImportant:true });
   save(); updateUI();
 });
 
@@ -1348,6 +1593,8 @@ function initSettingsUI(){
   const volCroak = document.getElementById("volCroak");
   const volAch = document.getElementById("volAch");
   const volUi = document.getElementById("volUi");
+  const volMusic = document.getElementById("volMusic");
+  const musicToggleBtn = document.getElementById("musicToggleBtn");
   const toastModeSelect = document.getElementById("toastModeSelect");
 
   autosaveSelect.value = String(state.settings.autosaveSec ?? 10);
@@ -1355,12 +1602,14 @@ function initSettingsUI(){
   volCroak.value = state.settings.volumeCroak ?? 1;
   volAch.value = state.settings.volumeAch ?? 0.9;
   volUi.value = state.settings.volumeUi ?? 0.8;
+  volMusic.value = state.settings.volumeMusic ?? 0.5;
   toastModeSelect.value = state.settings.toastMode || "all";
 
   muteBtn.textContent = `Звук: ${state.muted ? "ВЫКЛ" : "ВКЛ"}`;
   toggleParticles.textContent = `Частицы: ${state.settings.particles ? "ВКЛ" : "ВЫКЛ"}`;
   toggleShadows.textContent = `Тени: ${state.settings.shadows ? "ВКЛ" : "ВЫКЛ"}`;
   fxQualityBtn.textContent = `FX: ${state.settings.fxQuality || "high"}`;
+  musicToggleBtn.textContent = `Музыка: ${state.settings.musicOn ? "ВКЛ" : "ВЫКЛ"}`;
 
   autosaveSelect.addEventListener("change", ()=>{
     uiBeep();
@@ -1373,6 +1622,7 @@ function initSettingsUI(){
     uiBeep();
     state.muted = !state.muted;
     muteBtn.textContent = `Звук: ${state.muted ? "ВЫКЛ" : "ВКЛ"}`;
+    refreshMusic();
     save();
   });
 
@@ -1409,6 +1659,8 @@ function initSettingsUI(){
   volCroak.addEventListener("input", ()=>{ state.settings.volumeCroak=Number(volCroak.value); save(); });
   volAch.addEventListener("input", ()=>{ state.settings.volumeAch=Number(volAch.value); save(); });
   volUi.addEventListener("input", ()=>{ state.settings.volumeUi=Number(volUi.value); save(); });
+  volMusic.addEventListener("input", ()=>{ state.settings.volumeMusic=Number(volMusic.value); refreshMusic(); save(); });
+  musicToggleBtn.addEventListener("click", ()=>{ state.settings.musicOn=!state.settings.musicOn; musicToggleBtn.textContent=`Музыка: ${state.settings.musicOn ? "ВКЛ" : "ВЫКЛ"}`; refreshMusic(); save(); });
 }
 
 /* =========================
@@ -1419,10 +1671,24 @@ function openTab(tab){
   document.querySelector(`.tabBtn[data-tab="${tab}"]`)?.classList.add("active");
   document.querySelectorAll(".tabPane").forEach(p=>p.classList.remove("active"));
   document.getElementById("tab-"+tab)?.classList.add("active");
+  if(tab==="news"){
+    state.newsSeenVersion = CURRENT_VERSION;
+    const badge = document.getElementById('newsBadge');
+    if(badge) badge.style.display='none';
+    save();
+  }
 }
 document.querySelectorAll(".tabBtn[data-tab]").forEach(btn=>{
   btn.addEventListener("click", ()=>{ uiBeep(); openTab(btn.dataset.tab); });
 });
+
+
+function openShopTab(id){
+  document.querySelectorAll('.shopTabBtn').forEach(b=>{ b.classList.remove('active','primary'); if(b.dataset.shop===id){ b.classList.add('active','primary'); }});
+  document.querySelectorAll('.shopPane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('shop-pane-'+id)?.classList.add('active');
+}
+document.querySelectorAll('.shopTabBtn').forEach(btn=> btn.addEventListener('click', ()=>{ uiBeep(); openShopTab(btn.dataset.shop); }));
 
 /* games subtabs */
 function openSubGame(id){
@@ -1445,12 +1711,19 @@ const bioInput = document.getElementById("bioInput");
 const profileMeta = document.getElementById("profileMeta");
 const titleSelect = document.getElementById("titleSelect");
 const activeTitleTag = document.getElementById("activeTitleTag");
+function builtInAvatarSvg(id="frog1"){
+  const palette = {
+    frog1:['#59d27b','#2f8f54'], frog2:['#7ecbff','#315e9f'], frog3:['#ffb37e','#a04f2a'], frog4:['#f4a3ff','#6e3d9d']
+  };
+  const c = palette[id] || palette.frog1;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='${c[0]}'/><stop offset='1' stop-color='${c[1]}'/></linearGradient></defs><rect width='120' height='120' rx='24' fill='#0c1526'/><ellipse cx='60' cy='70' rx='42' ry='30' fill='url(#g)'/><circle cx='43' cy='45' r='14' fill='#fff'/><circle cx='77' cy='45' r='14' fill='#fff'/><circle cx='43' cy='46' r='6' fill='#151515'/><circle cx='77' cy='46' r='6' fill='#151515'/><path d='M34 76 Q60 92 86 76' stroke='#fff' stroke-width='5' fill='none' stroke-linecap='round'/></svg>` )}`;
+}
 
 function renderAvatar(){
   avatarBox.innerHTML="";
-  if(state.account.avatarDataUrl){
+  if(state.account.avatarDataUrl || state.account.builtInAvatar){
     const img=document.createElement("img");
-    img.src=state.account.avatarDataUrl;
+    img.src=state.account.avatarDataUrl || builtInAvatarSvg(state.account.builtInAvatar);
     avatarBox.appendChild(img);
   }else{
     const s=document.createElement("span");
@@ -1459,12 +1732,22 @@ function renderAvatar(){
     avatarBox.appendChild(s);
   }
 }
-avatarBox.addEventListener("click", ()=>{ uiBeep(); avatarFile.click(); });
+avatarBox.addEventListener("click", ()=>{
+  uiBeep();
+  const mode = prompt('Аватар: 1 — Загрузить свою, 2 — Встроенная (frog1..frog4)', '1');
+  if(mode==='2'){
+    const id = prompt('Выбери встроенную: frog1, frog2, frog3, frog4', state.account.builtInAvatar||'frog1') || 'frog1';
+    state.account.builtInAvatar = id.trim();
+    state.account.avatarDataUrl = '';
+    renderAvatar(); save(); return;
+  }
+  avatarFile.click();
+});
 avatarFile.addEventListener("change", ()=>{
   const f=avatarFile.files?.[0];
   if(!f) return;
   const r=new FileReader();
-  r.onload=()=>{ state.account.avatarDataUrl=String(r.result); renderAvatar(); save(); };
+  r.onload=()=>{ state.account.avatarDataUrl=String(r.result); state.account.builtInAvatar=''; renderAvatar(); save(); };
   r.readAsDataURL(f);
 });
 
@@ -1549,11 +1832,6 @@ document.getElementById("saveBtn").addEventListener("click", ()=>{
   save();
   toast("Сохранено", "Прогресс сохранён", "SAVE");
 });
-document.getElementById("leaderUpdateBtn")?.addEventListener("click", ()=>{
-  uiBeep();
-  updateMyLeaderboardRow();
-  toast("Лидеры", "Результат обновлён", "RATING");
-});
 document.getElementById("leaderResetBtn")?.addEventListener("click", ()=>{
   if(!confirm("Сбросить таблицу лидеров?")) return;
   localStorage.removeItem(LEADERBOARD_KEY);
@@ -1586,6 +1864,9 @@ function updateUI(full=true){
 
   xpBar.style.width = clamp((state.xp/state.xpNeed)*100,0,100)+"%";
   xpText.textContent = `${state.xp} / ${state.xpNeed} XP`;
+  energyText.textContent = `${Math.round(state.energy)} / ${Math.round(state.energyMax)}`;
+  energyFill.style.width = `${clamp((state.energy/state.energyMax)*100,0,100)}%`;
+  diamondsEl.textContent = Math.floor(state.diamonds).toLocaleString("ru-RU");
 
   if(full){
     renderUpgrades();
@@ -1594,10 +1875,13 @@ function updateUI(full=true){
     renderRanks();
     renderTitles();
     renderLeaders();
+    renderLocations();
+    renderNews();
   }
   updateProfileMeta();
   updateDailyUI();
   updateEventUI();
+  autoUpdateLeaderboard();
 }
 
 /* =========================
@@ -1607,6 +1891,14 @@ const frogCanvas = document.getElementById("frog");
 const fctx = frogCanvas.getContext("2d");
 
 const fx = { ripples:[], particles:[], lastClick:0, squash:0 };
+const frogLife = { lookX:0, lookY:0, targetX:0, targetY:0, blink:0, nextBlink:performance.now()+rand(1200,3800), mood:"idle", happyUntil:0, angryUntil:0, lastUserAction:Date.now() };
+function frogMoodNow(){
+  const n = Date.now();
+  if(n < frogLife.happyUntil) return "happy";
+  if(n < frogLife.angryUntil) return "angry";
+  if(state.energy < state.energyMax*0.18) return "tired";
+  return "idle";
+}
 
 function addClickFX(px,py, strong=false){
   if(!state.settings.particles) return;
@@ -1655,11 +1947,23 @@ function skinPalette(){
 function drawFrog(){
   const W=frogCanvas.width, H=frogCanvas.height;
   fctx.clearRect(0,0,W,H);
+  const tNow = performance.now();
+  frogLife.lookX = lerp(frogLife.lookX, frogLife.targetX, 0.08);
+  frogLife.lookY = lerp(frogLife.lookY, frogLife.targetY, 0.08);
+  if(tNow > frogLife.nextBlink){
+    frogLife.blink = 1;
+    const idleBoost = (Date.now() - frogLife.lastUserAction) > 3000 ? 0.55 : 0;
+    frogLife.nextBlink = tNow + rand(1600, 5000) * (1-idleBoost);
+  }
+  frogLife.blink = Math.max(0, frogLife.blink - 0.18);
 
   // background vignette
+  const loc = locations.find(l=>l.id===state.activeLocation) || locations[0];
   const bg = fctx.createRadialGradient(W*0.5,H*0.55, 40, W*0.5,H*0.55, W*0.62);
-  bg.addColorStop(0, "rgba(26,200,255,0.09)");
-  bg.addColorStop(0.55, "rgba(53,240,163,0.06)");
+  const cA = loc.id==='hell' ? 'rgba(255,70,90,0.14)' : loc.id==='space' ? 'rgba(130,120,255,0.12)' : loc.id==='heaven' ? 'rgba(180,255,255,0.12)' : loc.id==='dirty' ? 'rgba(165,140,90,0.11)' : 'rgba(26,200,255,0.09)';
+  const cB = loc.id==='hell' ? 'rgba(255,140,60,0.08)' : loc.id==='space' ? 'rgba(80,140,255,0.08)' : loc.id==='heaven' ? 'rgba(120,210,255,0.08)' : loc.id==='dirty' ? 'rgba(134,170,76,0.08)' : 'rgba(53,240,163,0.06)';
+  bg.addColorStop(0, cA);
+  bg.addColorStop(0.55, cB);
   bg.addColorStop(1, "rgba(0,0,0,0.45)");
   fctx.fillStyle=bg; fctx.fillRect(0,0,W,H);
 
@@ -1684,9 +1988,10 @@ function drawFrog(){
 
   const pal = skinPalette();
 
+  const breathe = Math.sin(tNow*0.0032) * 6;
   fctx.save();
-  fctx.translate(W/2, H*0.54);
-  fctx.scale(1.0, squash);
+  fctx.translate(W/2, H*0.54 + breathe);
+  fctx.scale(1.0 + Math.sin(tNow*0.002)*0.004, squash);
 
   // legs (simple “cartoon” but textured)
   function leg(x, y, flip=1){
@@ -1751,23 +2056,19 @@ function drawFrog(){
   // extra skin finish
   drawSkinFinish(pal);
 
-  // mouth line (flat, bored)
+  // mouth line (expression)
+  const exprMood = frogMoodNow();
+  const mouthArc = exprMood==="happy" ? -70 : mood==="angry" ? 18 : mood==="tired" ? 8 : -10;
   fctx.strokeStyle="rgba(255,255,255,0.85)";
   fctx.lineWidth=10;
   fctx.lineCap="round";
   fctx.beginPath();
   fctx.moveTo(-210, -40);
-  fctx.quadraticCurveTo(0, -10, 210, -40);
+  fctx.quadraticCurveTo(0, mouthArc, 210, -40);
   fctx.stroke();
 
-  fctx.strokeStyle="rgba(0,0,0,0.18)";
-  fctx.lineWidth=8;
-  fctx.beginPath();
-  fctx.moveTo(-200, -36);
-  fctx.quadraticCurveTo(0, -6, 200, -36);
-  fctx.stroke();
-
-  // eyes (deeper rendering)
+  // eyes (alive rendering)
+  const mood = frogMoodNow();
   function eye(x){
     fctx.save();
     fctx.translate(x, -230);
@@ -1775,32 +2076,30 @@ function drawFrog(){
     eyeWhite.addColorStop(0, "rgba(255,255,255,0.98)");
     eyeWhite.addColorStop(1, "rgba(225,246,255,0.92)");
     fctx.fillStyle=eyeWhite;
-    fctx.beginPath(); fctx.ellipse(0, 0, 86, 64, 0, 0, Math.PI*2); fctx.fill();
+    const blinkSquash = 1 - frogLife.blink;
+    fctx.beginPath(); fctx.ellipse(0, 0, 86, Math.max(8,64*blinkSquash), 0, 0, Math.PI*2); fctx.fill();
 
-    const iris = fctx.createRadialGradient(8,8, 5, 0,0, 30);
+    const irisY = mood==="tired" ? 12 : (mood==="angry" ? 2 : 8);
+    const irisX = clamp(frogLife.lookX*22,-18,18);
+    const iris = fctx.createRadialGradient(8+irisX,8+irisY, 5, irisX,irisY, 30);
     iris.addColorStop(0, "rgba(75,70,58,1)");
     iris.addColorStop(1, "rgba(20,20,20,1)");
     fctx.fillStyle=iris;
-    fctx.beginPath(); fctx.ellipse(0, 8, 24, 28, 0, 0, Math.PI*2); fctx.fill();
+    fctx.beginPath(); fctx.ellipse(irisX, irisY, 24, 28*blinkSquash, 0, 0, Math.PI*2); fctx.fill();
 
     fctx.fillStyle="rgba(255,255,255,0.95)";
-    fctx.beginPath(); fctx.ellipse(-8, -2, 5, 7, 0, 0, Math.PI*2); fctx.fill();
-    fctx.fillStyle="rgba(255,255,255,0.65)";
-    fctx.beginPath(); fctx.ellipse(5, 15, 2.5, 3.6, 0, 0, Math.PI*2); fctx.fill();
+    fctx.beginPath(); fctx.ellipse(-8+irisX*0.5, -2+frogLife.lookY*5, 5, 7*blinkSquash, 0, 0, Math.PI*2); fctx.fill();
 
+    let browLift = -56;
+    if(mood==="happy") browLift = -66;
+    if(mood==="tired") browLift = -42;
+    if(mood==="angry") browLift = -26;
     fctx.strokeStyle="rgba(17,42,28,0.95)";
     fctx.lineWidth=16;
     fctx.lineCap="round";
     fctx.beginPath();
     fctx.moveTo(-90, -20);
-    fctx.quadraticCurveTo(0, -56, 90, -20);
-    fctx.stroke();
-
-    fctx.strokeStyle="rgba(0,0,0,0.25)";
-    fctx.lineWidth=8;
-    fctx.beginPath();
-    fctx.moveTo(-66, 35);
-    fctx.quadraticCurveTo(0, 52, 66, 35);
+    fctx.quadraticCurveTo(0, browLift, 90, mood==="angry" ? -6 : -20);
     fctx.stroke();
     fctx.restore();
   }
@@ -2126,6 +2425,14 @@ function drawFX(){
 const wrap = document.getElementById("frogWrap");
 let lastTap = 0;
 
+wrap.addEventListener("pointermove", (e)=>{
+  const rect = frogCanvas.getBoundingClientRect();
+  const px = clamp((e.clientX - rect.left) / rect.width, 0, 1);
+  const py = clamp((e.clientY - rect.top) / rect.height, 0, 1);
+  frogLife.targetX = clamp((px-0.5)*1.6, -0.9, 0.9);
+  frogLife.targetY = clamp((py-0.45)*1.5, -0.7, 0.7);
+});
+
 wrap.addEventListener("pointerdown", (e)=>{
   const rect = frogCanvas.getBoundingClientRect();
   const px = (e.clientX - rect.left) / rect.width;
@@ -2142,6 +2449,7 @@ wrap.addEventListener("pointerdown", (e)=>{
   fx.lastClick = Date.now();
   addClickFX(px,py, dbl);
 
+  frogLife.lastUserAction = Date.now();
   if(dbl){
     clickLogic(2.0);
     frogCroak(1.15);
@@ -2190,8 +2498,10 @@ function fliesEnd(){
   const mul = (1 + (state.minigameBonus||0)) * eventMiniMultiplier();
   const payout = Math.round(fliesScore * mul);
   state.points += payout;
+  const dia = Math.max(0, Math.floor(fliesScore/260));
+  state.diamonds += dia;
   state.meta.fliesWins = (state.meta.fliesWins||0) + (fliesScore>0 ? 1 : 0);
-  toast("Охота завершена", `+${payout} очков (x${mul.toFixed(2)})`, "MINI GAME");
+  toast("Охота завершена", `+${payout} очков (x${mul.toFixed(2)}) · +${dia} алм.`, "MINI GAME");
   dailySetProg("fliesWin", 1);
   save(); updateUI();
 }
@@ -2450,11 +2760,13 @@ const raidC = document.getElementById("raid");
 const r2 = raidC.getContext("2d");
 const raidHud = document.getElementById("raidHud");
 let raidRun=false, raidStartT=0;
-let player, obstacles=[], coins=[], raidScore=0, raidLives=3, raidSpeed=260;
+let player, obstacles=[], coins=[], raidScore=0, raidLives=3, raidSpeed=260, raidNextObs=0, raidNextCoin=0;
 
 function raidReset(){
   raidScore=0; raidLives=3; raidSpeed=260;
   obstacles=[]; coins=[];
+  raidNextObs = performance.now()+900;
+  raidNextCoin = performance.now()+650;
   raidStartT=performance.now();
   player={ x:140, y:420, vy:0, onGround:true, r:22 };
   raidHud.textContent="Очки: 0 · Жизни: 3 · Время: 40";
@@ -2479,8 +2791,10 @@ function raidEnd(){
   const mul = (1 + (state.minigameBonus||0)) * eventMiniMultiplier();
   const payout = Math.round(raidScore * mul);
   state.points += payout;
+  const dia = Math.max(0, Math.floor(raidScore/320));
+  state.diamonds += dia;
   state.meta.raidBest = Math.max(state.meta.raidBest||0, raidScore);
-  toast("Рейд завершён", `+${payout} очков (x${mul.toFixed(2)})`, "MINI GAME");
+  toast("Рейд завершён", `+${payout} очков (x${mul.toFixed(2)}) · +${dia} алм.`, "MINI GAME");
   // daily: raidScore target
   dailySetProg("raidScore", raidScore);
   save(); updateUI();
@@ -2500,9 +2814,9 @@ function drawRaid(){
   r2.fillStyle="rgba(0,0,0,0.18)";
   r2.fillRect(0,480,960,60);
 
-  // spawn
-  if(Math.random()<0.030) spawnObstacle();
-  if(Math.random()<0.040) spawnCoin();
+  // spawn with reaction windows
+  if(now > raidNextObs){ spawnObstacle(); raidNextObs = now + rand(760, 1250); }
+  if(now > raidNextCoin){ spawnCoin(); raidNextCoin = now + rand(520, 980); }
 
   // speed ramps
   raidSpeed = Math.min(520, raidSpeed + 0.18);
@@ -2596,6 +2910,62 @@ window.addEventListener("keydown",(e)=>{
   if(e.code==="Space") raidJump();
 });
 
+
+/* =========================
+  MINI GAME 4: BLACKJACK
+========================= */
+let bjDeck=[], bjPlayer=[], bjDealer=[], bjRound=false, bjBetVal=0;
+function bjNewDeck(){
+  const suits=['♠','♥','♦','♣'];
+  const vals=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+  bjDeck=[];
+  for(const s of suits) for(const v of vals) bjDeck.push({s,v});
+  for(let i=bjDeck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [bjDeck[i],bjDeck[j]]=[bjDeck[j],bjDeck[i]]; }
+}
+function bjValue(hand){
+  let total=0, aces=0;
+  hand.forEach(c=>{ if(c.v==='A'){aces++; total+=11;} else if(['K','Q','J'].includes(c.v)) total+=10; else total+=Number(c.v); });
+  while(total>21 && aces>0){ total-=10; aces--; }
+  return total;
+}
+function bjRender(hideDealer=false){
+  const p=document.getElementById('bjPlayer'), d=document.getElementById('bjDealer');
+  p.innerHTML = bjPlayer.map(c=>`<span class="bjCard">${c.v}${c.s}</span>`).join('');
+  d.innerHTML = bjDealer.map((c,i)=> hideDealer&&i===1 ? `<span class="bjCard">?</span>` : `<span class="bjCard">${c.v}${c.s}</span>`).join('');
+  document.getElementById('bjPlayerScore').textContent = `Сумма: ${bjValue(bjPlayer)}`;
+  document.getElementById('bjDealerScore').textContent = `Сумма: ${hideDealer?bjValue([bjDealer[0]]):bjValue(bjDealer)}`;
+}
+function bjEnd(result){
+  bjRound=false;
+  let msg='';
+  if(result==='win'){ const reward=Math.round(bjBetVal*1.8); state.points += reward; state.diamonds += Math.max(0,Math.floor(bjBetVal/700)); msg=`Победа! +${reward}`; }
+  else if(result==='push'){ state.points += bjBetVal; msg='Ничья, ставка возвращена'; }
+  else msg='Проигрыш';
+  document.getElementById('bjState').textContent = msg;
+  toast('Blackjack', msg, 'GAME', { forceImportant: result==='win' && bjBetVal>=1200 });
+  save(); updateUI(false); bjRender(false);
+}
+function bjDeal(){
+  const bet = Math.max(50, Math.floor(Number(document.getElementById('bjBet').value)||50));
+  if(state.points < bet){ toast('Blackjack', `Нужно ${bet} очков`, 'GAME'); return; }
+  state.points -= bet; bjBetVal=bet; bjRound=true;
+  bjNewDeck(); bjPlayer=[bjDeck.pop(), bjDeck.pop()]; bjDealer=[bjDeck.pop(), bjDeck.pop()];
+  document.getElementById('bjState').textContent = `Ставка: ${bet}`;
+  bjRender(true);
+  const pv=bjValue(bjPlayer), dv=bjValue(bjDealer);
+  if(pv===21 && dv===21) bjEnd('push'); else if(pv===21) bjEnd('win');
+}
+function bjHit(){ if(!bjRound) return; bjPlayer.push(bjDeck.pop()); bjRender(true); if(bjValue(bjPlayer)>21) bjEnd('lose'); }
+function bjStand(){
+  if(!bjRound) return;
+  while(bjValue(bjDealer)<17) bjDealer.push(bjDeck.pop());
+  const pv=bjValue(bjPlayer), dv=bjValue(bjDealer);
+  if(dv>21 || pv>dv) bjEnd('win'); else if(pv===dv) bjEnd('push'); else bjEnd('lose');
+}
+document.getElementById('bjDeal')?.addEventListener('click', ()=>{ uiBeep(); bjDeal(); });
+document.getElementById('bjHit')?.addEventListener('click', ()=>{ uiBeep(); bjHit(); });
+document.getElementById('bjStand')?.addEventListener('click', ()=>{ uiBeep(); bjStand(); });
+
 /* =========================
   MINI GAME LOOP
 ========================= */
@@ -2638,6 +3008,9 @@ window.rollCrit = function(){
   const chance = clamp(state.critChance + bonus, 0, 0.9);
   return Math.random() < chance;
 };
+
+updateLocationTheme();
+refreshMusic();
 
 // profile init
 nickInput.value = state.account.nick || "";
