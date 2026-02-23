@@ -1,0 +1,2429 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Frog Clicker — PRO (2D + RP)</title>
+<style>
+  :root{
+    --bg1:#060b14; --bg2:#071f25;
+    --card:#0f1a2ae0; --stroke:#ffffff1f;
+    --text:#eaf2ff; --muted:#b7c6dd;
+    --good:#35f0a3; --warn:#ffd166; --bad:#ff4d6d; --ink:#06121b;
+    --accentA:#35f0a3; --accentB:#1ac8ff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; color:var(--text);
+    font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:
+      radial-gradient(1100px 650px at 18% 10%, #1a7f6a55, transparent 60%),
+      radial-gradient(1100px 650px at 82% 25%, #2a6cff44, transparent 60%),
+      linear-gradient(160deg, var(--bg1), var(--bg2));
+    display:flex; align-items:center; justify-content:center;
+    padding:20px; overflow:hidden;
+  }
+  .wrap{
+    width:min(1320px,100%);
+    display:grid;
+    grid-template-columns: .82fr 1.08fr 1.05fr;
+    gap:16px;
+  }
+  @media (max-width: 1100px){ .wrap{grid-template-columns:1fr; } body{overflow:auto;} }
+  .card{
+    background:var(--card);
+    border:1px solid var(--stroke);
+    border-radius:22px;
+    padding:14px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 70px #00000066;
+  }
+  .top{display:flex; gap:12px; align-items:flex-start; justify-content:space-between; margin-bottom:10px;}
+  .brand{display:flex; flex-direction:column; gap:4px;}
+  .brand h1{margin:0;font-size:16px;letter-spacing:.3px;}
+  .brand p{margin:0;color:var(--muted);font-size:12px;line-height:1.3;}
+  .pill{
+    display:inline-flex; gap:8px; align-items:center;
+    padding:10px 12px; border-radius:999px;
+    border:1px solid var(--stroke); background:#0a1220aa; color:var(--muted); font-size:12px; user-select:none;
+  }
+  .dot{width:10px;height:10px;border-radius:50%;
+    background:linear-gradient(180deg, var(--accentA), var(--accentB));
+    box-shadow:0 0 18px color-mix(in srgb, var(--accentA) 55%, transparent);}
+
+  /* Left account panel */
+  .profileCard .row{display:flex; gap:12px; align-items:center;}
+  .avatar{
+    width:72px; height:72px; border-radius:16px;
+    border:1px solid #ffffff22;
+    background: radial-gradient(circle at 30% 30%, #ffffff44, transparent 60%),
+                linear-gradient(160deg, #0b2036, #07131e);
+    overflow:hidden; display:grid; place-items:center;
+    user-select:none; cursor:pointer;
+  }
+  .avatar img{width:100%; height:100%; object-fit:cover; display:block;}
+  .nickCol{flex:1; display:grid; gap:6px;}
+  .nickCol label{font-size:12px; color:var(--muted)}
+  .nickCol input, .nickCol textarea{
+    width:100%; padding:10px 12px;
+    border-radius:14px; border:1px solid #ffffff22;
+    background:#00000022; color:var(--text);
+    outline:none; font-weight:850;
+  }
+  .nickCol textarea{min-height:70px; resize:vertical; font-weight:650; line-height:1.2}
+  .small{font-size:12px; color:var(--muted); line-height:1.35}
+  .btnRow{display:flex; gap:10px; flex-wrap:wrap;}
+  .btn{
+    cursor:pointer; border:1px solid var(--stroke);
+    background:#0a1220aa; color:var(--text);
+    padding:10px 12px; border-radius:14px;
+    font-weight:950; font-size:13px; user-select:none;
+    transition: transform .08s ease, background .2s ease, border-color .2s ease;
+    white-space:nowrap;
+  }
+  .btn:hover{background:#101f36cc;border-color:#ffffff33;}
+  .btn:active{transform:scale(.98)}
+  .btn.primary{background: linear-gradient(90deg, var(--accentA), var(--accentB)); color:var(--ink); border-color:transparent;}
+  .btn.warn{background: linear-gradient(90deg, #ffd166, #1ac8ff); color:var(--ink); border-color:transparent;}
+  .btn.danger{background:#2a0f16aa; border-color:#ff4d6d55; color:#ffd6de;}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .item{
+    border:1px solid var(--stroke); background:#0a1220aa; border-radius:16px;
+    padding:12px; display:grid; gap:6px;
+  }
+  .item .t{font-weight:950}
+  .item .s{color:var(--muted); font-size:12px; line-height:1.3}
+  .item .row{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
+  .tag{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 10px; border-radius:999px;
+    border:1px solid #ffffff22; background:#00000022;
+    font-size:12px; color:var(--muted);
+  }
+
+  /* Center frog */
+  .arena{
+    display:grid; place-items:center; min-height:520px; position:relative;
+    border-radius:18px; border:1px dashed #ffffff22;
+    background:
+      radial-gradient(700px 360px at 50% 62%, color-mix(in srgb, var(--accentA) 12%, transparent), transparent 65%),
+      radial-gradient(1000px 560px at 50% 38%, color-mix(in srgb, var(--accentB) 10%, transparent), transparent 70%);
+    overflow:hidden;
+  }
+  #frogWrap{
+    width:min(560px, 94vw);
+    aspect-ratio: 1 / 1;
+    border-radius:22px;
+    overflow:hidden;
+    position:relative;
+    filter: drop-shadow(0 34px 56px #0000007a);
+    border:1px solid #ffffff22;
+    background: linear-gradient(160deg,#0a1324,#071a1f);
+    user-select:none;
+    touch-action: manipulation;
+  }
+  canvas#frog{width:100%;height:100%;display:block;cursor:pointer;}
+  .hintChip{
+    position:absolute; left:12px; bottom:12px;
+    font-size:12px; color:var(--muted);
+    background:#0000002a; border:1px solid #ffffff22;
+    padding:8px 10px; border-radius:999px;
+    pointer-events:none;
+  }
+  .stats{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;}
+  .stat{padding:12px; border-radius:16px; border:1px solid var(--stroke); background:#0a1220aa;}
+  .stat .k{color:var(--muted); font-size:12px; margin-bottom:6px;}
+  .stat .v{font-size:22px; font-weight:950; letter-spacing:.2px;}
+  .bar{margin-top:10px;height:10px;border-radius:999px;background:#ffffff12;border:1px solid #ffffff1f;overflow:hidden;}
+  .bar>div{
+    height:100%;width:0%;border-radius:999px;
+    background: linear-gradient(90deg, var(--accentA), var(--accentB));
+    box-shadow: 0 0 16px color-mix(in srgb, var(--accentA) 35%, transparent);
+    transition: width .18s ease;
+  }
+  .hint{margin-top:10px; color:#b7c6dd; font-size:12px; line-height:1.35;}
+
+  /* Right tabs */
+  .tabs{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:center;}
+  .tabBtn{
+    cursor:pointer; border:1px solid var(--stroke); background:#0a1220aa; color:var(--text);
+    padding:10px 12px; border-radius:14px; font-weight:950; font-size:13px;
+    transition: transform .08s ease, background .2s ease, border-color .2s ease;
+    user-select:none;
+  }
+  .tabBtn:hover{background:#101f36cc;border-color:#ffffff33;}
+  .tabBtn:active{transform:scale(.98)}
+  .tabBtn.active{
+    background: linear-gradient(90deg, var(--accentA), var(--accentB));
+    color:var(--ink); border-color:transparent;
+  }
+  .tabPane{display:none;}
+  .tabPane.active{display:block;}
+  .panel h2{margin:0 0 10px 0; font-size:16px;}
+  .panel p{margin:0 0 12px 0; color:var(--muted); font-size:13px; line-height:1.35;}
+
+  /* split cosmetics */
+  .split2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media (max-width: 1100px){ .split2{grid-template-columns:1fr} }
+
+  /* Games */
+  .gameBox{
+    border:1px solid var(--stroke); background:#0a1220aa; border-radius:18px;
+    padding:12px; overflow:hidden;
+  }
+  .gameTop{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;}
+  .gameCanvasWrap{
+    width:100%;
+    aspect-ratio: 16/9;
+    border-radius:14px;
+    border:1px solid #ffffff22;
+    background: linear-gradient(160deg,#0a1324,#071a1f);
+    overflow:hidden;
+    position:relative;
+  }
+  canvas.game{width:100%; height:100%; display:block; cursor:crosshair;}
+  .gameHUD{
+    position:absolute; left:10px; top:10px;
+    background:#00000033; border:1px solid #ffffff22;
+    padding:8px 10px; border-radius:12px;
+    font-size:12px; color:var(--text);
+    user-select:none;
+  }
+  .subTabs{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;}
+  .subPane{display:none;}
+  .subPane.active{display:block;}
+
+  /* Toasts */
+  .toasts{
+    position:fixed; right:16px; bottom:16px;
+    display:grid; gap:10px;
+    z-index:9999;
+    width:min(380px, calc(100vw - 32px));
+  }
+  .toast{
+    border-radius:16px;
+    border:1px solid #ffffff22;
+    background:#0a1220f2;
+    box-shadow:0 16px 50px #0000006a;
+    padding:12px;
+    display:grid; gap:4px;
+    animation: toastIn .25s ease-out, toastOut .3s ease-in forwards;
+    animation-delay: 0s, 3.1s;
+  }
+  @keyframes toastIn{from{transform:translateY(10px); opacity:0} to{transform:translateY(0); opacity:1}}
+  @keyframes toastOut{to{transform:translateY(10px); opacity:0}}
+  .toast .t{font-weight:950}
+  .toast .s{color:var(--muted); font-size:12px; line-height:1.3}
+  .toast .b{
+    margin-top:6px;
+    display:inline-flex; align-items:center; gap:8px;
+    font-weight:950; font-size:12px;
+    background: linear-gradient(90deg, var(--accentA), var(--accentB));
+    color: var(--ink);
+    border-radius:999px;
+    padding:6px 10px;
+    width:max-content;
+  }
+
+  /* Inputs in settings */
+  select, input[type="range"]{accent-color: var(--accentA);}
+  select{
+    padding:10px 12px; border-radius:14px;
+    border:1px solid #ffffff22;
+    background:#00000022; color:var(--text);
+    font-weight:900;
+  }
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <!-- LEFT: ACCOUNT + META -->
+  <div class="card profileCard">
+    <div class="top">
+      <div class="brand">
+        <h1>👤 Аккаунт</h1>
+        <p>Ник/аватар/статус + экспорт/импорт сейва. Всё хранится локально.</p>
+      </div>
+      <div class="pill"><span class="dot"></span> LOCAL</div>
+    </div>
+
+    <div class="item">
+      <div class="row" style="align-items:flex-start">
+        <div class="avatar" id="avatarBox" title="Нажми, чтобы загрузить фото">
+          <span style="font-weight:950;color:#eaf2ffcc">+</span>
+        </div>
+        <div class="nickCol">
+          <label>Никнейм</label>
+          <input id="nickInput" placeholder="Например: KawaiiFrog"/>
+          <label>Статус / био</label>
+          <textarea id="bioInput" placeholder="Например: «Главный по болоту»"></textarea>
+          <div class="small" id="profileMeta">Профиль создан: —</div>
+        </div>
+      </div>
+
+      <div class="btnRow" style="margin-top:10px">
+        <button class="btn primary" id="accSave">Сохранить профиль</button>
+        <button class="btn" id="accClear">Удалить фото</button>
+      </div>
+
+      <input id="avatarFile" type="file" accept="image/*" style="display:none"/>
+    </div>
+
+    <div class="item">
+      <div class="t">Титулы</div>
+      <div class="s">Открываются по прогрессу. Можно выбрать активный.</div>
+      <div class="row">
+        <select id="titleSelect"></select>
+        <span class="tag" id="activeTitleTag">—</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="t">Сейв</div>
+      <div class="s">Экспорт/импорт JSON. Удобно для заказчика или переноса.</div>
+      <div class="btnRow">
+        <button class="btn warn" id="exportSave">Экспорт</button>
+        <button class="btn" id="importSave">Импорт</button>
+        <button class="btn danger" id="resetBtn">Сброс</button>
+      </div>
+      <input id="importFile" type="file" accept="application/json" style="display:none"/>
+      <div class="small">Импорт перезапишет прогресс в браузере.</div>
+    </div>
+
+    <div class="item">
+      <div class="t">Ежедневные задания</div>
+      <div class="s" id="dailyText">—</div>
+      <div class="row">
+        <span class="tag" id="dailyProg">0 / 0</span>
+        <button class="btn" id="claimDaily" disabled>Забрать награду</button>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="t">Событие</div>
+      <div class="s" id="eventText">Сегодня тихо.</div>
+      <div class="row">
+        <span class="tag" id="eventTag">EVENT</span>
+        <button class="btn" id="rerollEvent">Сменить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: FROG -->
+  <div class="card">
+    <div class="top">
+      <div class="brand">
+        <h1>🐸 Frog Clicker — PRO (2D “как по рефу”)</h1>
+        <p>Клик по лягушке = очки. Реалистичный 2D-арт под твой референс (сонные глаза, текстура).</p>
+      </div>
+      <div class="pill"><span class="dot"></span> OFFLINE OK</div>
+    </div>
+
+    <div class="arena" id="arena">
+      <div id="frogWrap">
+        <canvas id="frog" width="900" height="900"></canvas>
+        <div class="hintChip">Клик = очки · Двойной клик = “суперква” · Нажми один раз, чтобы включить звук</div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="k">Очки</div>
+        <div class="v" id="points">0</div>
+        <div class="hint">За клик: <b id="ppc">1</b> · Крит: <b id="crit">10%</b> · Множ.: <b id="critMult">2.2x</b></div>
+        <div class="hint">Комбо: <b id="combo">x1</b> · Автоклики/сек: <b id="auto">0</b></div>
+        <div class="hint">Клики: <b id="clicks">0</b> · Криты: <b id="crits">0</b></div>
+      </div>
+      <div class="stat">
+        <div class="k">Уровень</div>
+        <div class="v"><span id="level">1</span> <span class="pill" style="padding:6px 10px" id="rank">Tadpole</span></div>
+        <div class="bar"><div id="xpBar"></div></div>
+        <div class="hint"><span id="xpText">0 / 20 XP</span></div>
+      </div>
+    </div>
+
+    <div class="hint">
+      <b>Реальный звук “ква”:</b> если хочешь прямо настоящий — положи рядом с HTML файл <b>frog-croak.mp3</b>.
+      Тогда звук будет браться из него. Если файла нет — используется аккуратный синтез (fallback).
+    </div>
+
+    <audio id="croakAudio" src="./frog-croak.mp3" preload="auto"></audio>
+  </div>
+
+  <!-- RIGHT: TABS -->
+  <div class="card panel">
+    <div class="tabs">
+      <button class="tabBtn active" data-tab="upg">Прокачка</button>
+      <button class="tabBtn" data-tab="shop">Магазин</button>
+      <button class="tabBtn" data-tab="games">Мини-игры</button>
+      <button class="tabBtn" data-tab="ach">Достижения</button>
+      <button class="tabBtn" data-tab="ranks">Ранги</button>
+      <button class="tabBtn" data-tab="set">Настройки</button>
+      <div style="flex:1"></div>
+      <button class="tabBtn primary" id="saveBtn">Сохранить</button>
+    </div>
+
+    <div class="tabPane active" id="tab-upg">
+      <h2>Прокачка</h2>
+      <p>Много апгрейдов, чтобы клик не “сыпал” слишком много, а прогресс реально ощущался.</p>
+      <div id="upgradeList" style="display:grid;gap:10px"></div>
+    </div>
+
+    <div class="tabPane" id="tab-shop">
+      <h2>Магазин</h2>
+      <p>Скины отдельно, аксессуары отдельно. Редкости + более крутой визуал.</p>
+      <div class="split2">
+        <div>
+          <div class="item" style="margin-bottom:10px">
+            <div class="t">🎨 Скины</div>
+            <div class="s">Меняют стиль/текстуру тела</div>
+          </div>
+          <div id="skinShopSkins" style="display:grid;gap:10px"></div>
+        </div>
+        <div>
+          <div class="item" style="margin-bottom:10px">
+            <div class="t">🧩 Аксессуары</div>
+            <div class="s">Очки/цепи/корона/шипы/ауры</div>
+          </div>
+          <div id="skinShopAccs" style="display:grid;gap:10px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabPane" id="tab-games">
+      <h2>Мини-игры</h2>
+      <p>Вкладки внутри. Формат не “просто тапалка”.</p>
+
+      <div class="subTabs">
+        <button class="tabBtn active" data-subgame="flies">🪰 Охота</button>
+        <button class="tabBtn" data-subgame="pads">🌿 Память</button>
+        <button class="tabBtn" data-subgame="raid">⚡ Рейд</button>
+      </div>
+
+      <div class="subPane active" id="subgame-flies">
+        <div class="gameBox">
+          <div class="gameTop">
+            <div>
+              <div style="font-weight:950">🪰 Охота на мух (точность + комбо)</div>
+              <div class="small">Больше скорость — больше награда. “Золотая муха” даёт бонус.</div>
+            </div>
+            <div class="btnRow">
+              <button class="btn primary" id="fliesStart">Старт</button>
+              <button class="btn" id="fliesStop">Стоп</button>
+            </div>
+          </div>
+          <div class="gameCanvasWrap">
+            <div class="gameHUD" id="fliesHud">—</div>
+            <canvas class="game" id="flies" width="960" height="540"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="subPane" id="subgame-pads">
+        <div class="gameBox">
+          <div class="gameTop">
+            <div>
+              <div style="font-weight:950">🌿 Болото-память (повтори последовательность)</div>
+              <div class="small">Сначала показывается маршрут, потом повторяешь. Ошибка — серия падает.</div>
+            </div>
+            <div class="btnRow">
+              <button class="btn primary" id="padsStart">Старт</button>
+              <button class="btn" id="padsStop">Стоп</button>
+            </div>
+          </div>
+          <div class="gameCanvasWrap">
+            <div class="gameHUD" id="padsHud">—</div>
+            <canvas class="game" id="pads" width="960" height="540"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="subPane" id="subgame-raid">
+        <div class="gameBox">
+          <div class="gameTop">
+            <div>
+              <div style="font-weight:950">⚡ Лягушачий рейд (раннер)</div>
+              <div class="small">Прыгай/уклоняйся, собирай бонусы. Управление: клик/пробел.</div>
+            </div>
+            <div class="btnRow">
+              <button class="btn primary" id="raidStart">Старт</button>
+              <button class="btn" id="raidStop">Стоп</button>
+            </div>
+          </div>
+          <div class="gameCanvasWrap">
+            <div class="gameHUD" id="raidHud">—</div>
+            <canvas class="game" id="raid" width="960" height="540"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabPane" id="tab-ach">
+      <h2>Достижения</h2>
+      <p>Выдаются один раз, без спама. Уведомление справа снизу.</p>
+      <div id="achList" style="display:grid;gap:10px"></div>
+    </div>
+
+    <div class="tabPane" id="tab-ranks">
+      <h2>Ранги</h2>
+      <p>Список всех рангов и требуемых уровней.</p>
+      <div id="rankList" style="display:grid;gap:10px"></div>
+    </div>
+
+    <div class="tabPane" id="tab-set">
+      <h2>Настройки</h2>
+      <div class="item">
+        <div class="t">Автосохранение</div>
+        <div class="s">Сохранять игру автоматически</div>
+        <div class="row">
+          <select id="autosaveSelect">
+            <option value="0">Выкл</option>
+            <option value="10">Каждые 10 сек</option>
+            <option value="30">Каждые 30 сек</option>
+            <option value="60">Каждую 1 мин</option>
+          </select>
+          <button class="btn" id="muteBtn">Звук: ВКЛ</button>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="t">Эффекты</div>
+        <div class="s">Частицы, тени, качество</div>
+        <div class="row">
+          <button class="btn" id="toggleParticles">Частицы</button>
+          <button class="btn" id="toggleShadows">Тени</button>
+          <button class="btn" id="fxQualityBtn">FX: high</button>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="t">Громкость</div>
+        <div class="s">Отдельная настройка звуков</div>
+        <div style="display:grid;gap:8px">
+          <label class="small">Общая <input type="range" id="volMaster" min="0" max="1" step="0.05"></label>
+          <label class="small">Ква <input type="range" id="volCroak" min="0" max="1" step="0.05"></label>
+          <label class="small">Ачивки <input type="range" id="volAch" min="0" max="1" step="0.05"></label>
+          <label class="small">UI <input type="range" id="volUi" min="0" max="1" step="0.05"></label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* =========================
+  CORE STATE / SAVE
+========================= */
+const KEY = "frog_clicker_pro_save_v3";
+
+const state = {
+  points: 0,
+  level: 1,
+  xp: 0,
+  xpNeed: 20,
+
+  // economy
+  ppc: 1,
+  critChance: 0.10,
+  critMult: 2.2,
+  combo: 1,
+  comboDecayMs: 1200,
+  comboLastHit: 0,
+
+  autoClickers: 0,
+  xpBoost: 1,
+  bonusDropChance: 0,
+  shopDiscount: 0,
+  minigameBonus: 0,
+
+  stats: { clicks:0, crits:0 },
+
+  cosmetics: {
+    skin:"default",
+    chainGold:false, cyberVisor:false, crown:false, monocle:false, spikes:false,
+    halo:false, horns:false, scar:false, angel:false, demon:false
+  },
+  owned: {},
+  _ach: {},
+
+  settings: {
+    autosaveSec: 10,
+    fxQuality: "high",
+    particles: true,
+    shadows: true,
+    volumeMaster: 1,
+    volumeCroak: 1,
+    volumeAch: 0.9,
+    volumeUi: 0.8
+  },
+
+  account: { nick:"", avatarDataUrl:"", bio:"" },
+  meta: {
+    createdAt: Date.now(),
+    title: "Новичок болота",
+    lastLoginDay: "",
+    daily: null,
+    dailyClaimedDay: ""
+  },
+
+  event: { id:"none", until:0 }
+};
+
+function deepMerge(target, src){
+  for(const k in src){
+    if(src[k] && typeof src[k]==="object" && !Array.isArray(src[k])){
+      target[k] ??= {};
+      deepMerge(target[k], src[k]);
+    }else{
+      target[k] = src[k];
+    }
+  }
+}
+
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function load(){
+  const raw = localStorage.getItem(KEY);
+  if(!raw) return;
+  try{
+    const d = JSON.parse(raw);
+    deepMerge(state, d);
+  }catch{}
+}
+
+/* =========================
+  UTIL
+========================= */
+function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+function rand(a,b){ return a + Math.random()*(b-a); }
+function lerp(a,b,t){ return a + (b-a)*t; }
+function nowDayKey(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+/* =========================
+  TOASTS (one-time)
+========================= */
+const toasts = document.getElementById("toasts");
+const toastLocks = new Set();
+function toast(title, subtitle, badge="INFO"){
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = `<div class="t">${title}</div><div class="s">${subtitle}</div><div class="b">${badge}</div>`;
+  toasts.appendChild(el);
+  setTimeout(()=> el.remove(), 3600);
+}
+function toastOnce(key, title, subtitle, badge="INFO", lockMs=2500){
+  if (toastLocks.has(key)) return;
+  toastLocks.add(key);
+  toast(title, subtitle, badge);
+  setTimeout(()=>toastLocks.delete(key), lockMs);
+}
+
+/* =========================
+  AUDIO
+========================= */
+let audioCtx=null;
+function ensureAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended") audioCtx.resume();
+}
+function uiBeep(){
+  if(state.settings && (state.settings.volumeMaster??1)===0) return;
+  if(state.muted) return;
+  ensureAudio();
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type="sine";
+  o.frequency.setValueAtTime(660, t);
+  o.frequency.exponentialRampToValueAtTime(880, t+0.08);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.28*(state.settings.volumeMaster||1)*(state.settings.volumeUi||1), t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+0.11);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t+0.12);
+}
+function achSound(){
+  if(state.muted) return;
+  ensureAudio();
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type="sine";
+  o.frequency.setValueAtTime(880, t);
+  o.frequency.exponentialRampToValueAtTime(1320, t+0.12);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.55*(state.settings.volumeMaster||1)*(state.settings.volumeAch||1), t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+0.18);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t+0.20);
+}
+function frogCroak(power=1){
+  if(state.muted) return;
+
+  const a = document.getElementById("croakAudio");
+  if (a){
+    try{
+      a.currentTime = 0;
+      const m = (state.settings?.volumeMaster ?? 1);
+      const c = (state.settings?.volumeCroak ?? 1);
+      a.volume = clamp(0.95 * power * m * c, 0, 1);
+      a.play().catch(()=>{});
+      return;
+    }catch(e){}
+  }
+
+  // Fallback synth (лучше, чем старый)
+  ensureAudio();
+  const t = audioCtx.currentTime;
+  const master = audioCtx.createGain();
+  master.gain.setValueAtTime(0.85*(state.settings.volumeMaster||1)*(state.settings.volumeCroak||1)*power, t);
+
+  const o1 = audioCtx.createOscillator();
+  o1.type="sine";
+  o1.frequency.setValueAtTime(160, t);
+  o1.frequency.exponentialRampToValueAtTime(88, t+0.20);
+
+  const o2 = audioCtx.createOscillator();
+  o2.type="triangle";
+  o2.frequency.setValueAtTime(72, t);
+  o2.frequency.exponentialRampToValueAtTime(50, t+0.22);
+
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.95, t+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+0.30);
+
+  const bp = audioCtx.createBiquadFilter();
+  bp.type="bandpass";
+  bp.frequency.setValueAtTime(600, t);
+  bp.Q.setValueAtTime(8.0, t);
+
+  const lp = audioCtx.createBiquadFilter();
+  lp.type="lowpass";
+  lp.frequency.setValueAtTime(1200, t);
+
+  o1.connect(g); o2.connect(g);
+  g.connect(bp); bp.connect(lp); lp.connect(master);
+  master.connect(audioCtx.destination);
+
+  o1.start(t); o2.start(t);
+  o1.stop(t+0.32); o2.stop(t+0.32);
+}
+
+/* =========================
+  RANKS / TITLES
+========================= */
+const ranks = [
+  { lvl:1,  name:"Tadpole" },
+  { lvl:3,  name:"Froglet" },
+  { lvl:6,  name:"Pond Ninja" },
+  { lvl:10, name:"Swamp Boss" },
+  { lvl:15, name:"Frog Emperor" },
+  { lvl:22, name:"Bog Legend" },
+  { lvl:30, name:"Mythic Amphibian" },
+  { lvl:40, name:"Elder of the Marsh" }
+];
+
+const titles = [
+  { id:"Новичок болота", req:()=>true },
+  { id:"Квакер", req:()=>state.stats.clicks>=250 },
+  { id:"Охотник на мух", req:()=>state.meta?.fliesWins>=3 },
+  { id:"Повелитель кувшинок", req:()=>state.meta?.padsWins>=3 },
+  { id:"Рейдер болота", req:()=>state.meta?.raidBest>=1200 },
+  { id:"Легенда", req:()=>state.level>=25 }
+];
+
+function currentRank(){
+  let r=ranks[0];
+  for(const it of ranks) if(state.level>=it.lvl) r=it;
+  return r;
+}
+
+/* =========================
+  ACHIEVEMENTS (one-time)
+========================= */
+const achievements = [
+  { id:"first",   name:"Первый ква",  desc:"Сделай 1 клик", check:()=> state.stats.clicks>=1, reward:25 },
+  { id:"c100",    name:"Сто кваков",  desc:"Сделай 100 кликов", check:()=> state.stats.clicks>=100, reward:150 },
+  { id:"c1000",   name:"Тысяча кваков", desc:"Сделай 1000 кликов", check:()=> state.stats.clicks>=1000, reward:850 },
+  { id:"crit25",  name:"Крит-монстр", desc:"Сделай 25 критов", check:()=> state.stats.crits>=25, reward:320 },
+  { id:"combo10", name:"Комбо x10",   desc:"Дойди до комбо x10", check:()=> state.combo>=10, reward:280 },
+  { id:"lvl10",   name:"Уже серьёзно",desc:"Достигни 10 уровня", check:()=> state.level>=10, reward:650 },
+  { id:"rich5k",  name:"Богатый пруд",desc:"Накопи 5000 очков", check:()=> state.points>=5000, reward:1200 },
+  { id:"skin1",   name:"Стиль есть",  desc:"Купи любой скин", check:()=> Object.keys(state.owned||{}).some(k=>k.startsWith("skin_") && state.owned[k]), reward:500 },
+  { id:"acc3",    name:"Модник",      desc:"Купи 3 аксессуара", check:()=> Object.keys(state.owned||{}).filter(k=>!k.startsWith("skin_") && state.owned[k]).length>=3, reward:600 }
+];
+
+function grantAchievement(a){
+  if (state._ach[a.id]) return;
+  state._ach[a.id] = true;
+  state.points += a.reward;
+
+  achSound();
+  toastOnce("ach_"+a.id, "Достижение получено!", `${a.name} — ${a.desc} (+${a.reward} очков)`, "ACHIEVEMENT", 4200);
+
+  updateUI();
+  save();
+}
+function checkAchievements(){
+  for(const a of achievements){
+    if(state._ach[a.id]) continue;
+    if(a.check()) grantAchievement(a);
+  }
+}
+
+/* =========================
+  UPGRADES (lots)
+========================= */
+const upgrades = [
+  { id:"ppc1", name:"+1 клик", desc:"Базовая мощность клика", base: 25, scale: 1.18,
+    level:()=>state.up_ppc1||0, buy(){ state.ppc += 1; state.up_ppc1=(state.up_ppc1||0)+1; } },
+  { id:"ppc5", name:"+5 клик", desc:"Средняя прокачка клика", base: 120, scale: 1.22,
+    level:()=>state.up_ppc5||0, buy(){ state.ppc += 5; state.up_ppc5=(state.up_ppc5||0)+1; } },
+  { id:"ppc20", name:"+20 клик", desc:"Серьёзный буст клика", base: 520, scale: 1.27,
+    level:()=>state.up_ppc20||0, buy(){ state.ppc += 20; state.up_ppc20=(state.up_ppc20||0)+1; } },
+
+  { id:"critChance", name:"+2% крит", desc:"Шанс крита (до 55%)", base: 180, scale: 1.30,
+    level:()=>state.up_critChance||0, buy(){ state.critChance = Math.min(0.55, state.critChance + 0.02); state.up_critChance=(state.up_critChance||0)+1; } },
+  { id:"critMult", name:"+0.15 множитель", desc:"Криты жирнее (до 4.5x)", base: 260, scale: 1.34,
+    level:()=>state.up_critMult||0, buy(){ state.critMult = Math.min(4.5, state.critMult + 0.15); state.up_critMult=(state.up_critMult||0)+1; } },
+
+  { id:"comboTime", name:"+0.15с комбо", desc:"Комбо дольше не спадает", base: 220, scale: 1.28,
+    level:()=>state.up_comboTime||0, buy(){ state.comboDecayMs = Math.min(3500, state.comboDecayMs + 150); state.up_comboTime=(state.up_comboTime||0)+1; } },
+
+  { id:"autoclick", name:"Автокликер +1/сек", desc:"Пассивный доход", base: 650, scale: 1.45,
+    level:()=>state.up_autoclick||0, buy(){ state.autoClickers += 1; state.up_autoclick=(state.up_autoclick||0)+1; } },
+
+  { id:"xpBoost", name:"+10% XP", desc:"Уровень растёт быстрее (до x3)", base: 340, scale: 1.35,
+    level:()=>state.up_xpBoost||0, buy(){ state.xpBoost = Math.min(3, state.xpBoost + 0.10); state.up_xpBoost=(state.up_xpBoost||0)+1; } },
+
+  { id:"bonusDrop", name:"+1% бонус-дроп", desc:"Шанс доп. очков за клик (до 20%)", base: 300, scale: 1.33,
+    level:()=>state.up_bonusDrop||0, buy(){ state.bonusDropChance = Math.min(0.20, state.bonusDropChance + 0.01); state.up_bonusDrop=(state.up_bonusDrop||0)+1; } },
+
+  { id:"shopDiscount", name:"Скидка 1%", desc:"Удешевляет покупки (до 35%)", base: 900, scale: 1.55,
+    level:()=>state.up_shopDiscount||0, buy(){ state.shopDiscount = Math.min(0.35, state.shopDiscount + 0.01); state.up_shopDiscount=(state.up_shopDiscount||0)+1; } },
+
+  { id:"miniBonus", name:"+5% мини-игры", desc:"Награда мини-игр выше (до x2.5)", base: 520, scale: 1.38,
+    level:()=>state.up_miniBonus||0, buy(){ state.minigameBonus = Math.min(2.5, state.minigameBonus + 0.05); state.up_miniBonus=(state.up_miniBonus||0)+1; } }
+];
+
+function upgradePrice(u){
+  const lvl = u.level();
+  const raw = Math.round(u.base * Math.pow(u.scale, lvl));
+  const discount = 1 - (state.shopDiscount||0);
+  return Math.max(1, Math.round(raw * discount));
+}
+
+/* =========================
+  COSMETICS (split)
+========================= */
+const cosmeticItems = [
+  // Skins
+  { id:"skin_default", kind:"skin", rarity:"common", name:"Болотная (реф)", desc:"Сонные глаза + зерно + мягкие контуры", price:0,
+    apply:()=> state.cosmetics.skin="default" },
+  { id:"skin_moss", kind:"skin", rarity:"rare", name:"Мшистая", desc:"Пятна мха + влажный оттенок", price:450,
+    apply:()=> state.cosmetics.skin="moss" },
+  { id:"skin_poison", kind:"skin", rarity:"epic", name:"Ядовитая неон", desc:"Кислотный тон + лёгкое свечение", price:900,
+    apply:()=> state.cosmetics.skin="poison" },
+  { id:"skin_obsidian", kind:"skin", rarity:"legend", name:"Обсидиан", desc:"Тёмная глянцевая кожа", price:1400,
+    apply:()=> state.cosmetics.skin="obsidian" },
+  { id:"skin_ice", kind:"skin", rarity:"epic", name:"Лёд", desc:"Холодные блики + голубой тон", price:1000,
+    apply:()=> state.cosmetics.skin="ice" },
+
+  // Accessories
+  { id:"chain_gold", kind:"acc", rarity:"rare", name:"Золотая цепь", desc:"Толстая цепь и кулон", price:550, toggle:"chainGold" },
+  { id:"glasses_cyber", kind:"acc", rarity:"epic", name:"Кибер-визор", desc:"Подсветка + стекло", price:850, toggle:"cyberVisor" },
+  { id:"crown", kind:"acc", rarity:"legend", name:"Корона болота", desc:"Королевский сет", price:1500, toggle:"crown" },
+  { id:"monocle", kind:"acc", rarity:"rare", name:"Монокль", desc:"Стиль “босс”", price:480, toggle:"monocle" },
+  { id:"spikes", kind:"acc", rarity:"epic", name:"Шипы", desc:"Агрессивный воротник", price:950, toggle:"spikes" },
+  { id:"scar", kind:"acc", rarity:"common", name:"Боевой шрам", desc:"Опытный вид", price:320, toggle:"scar" },
+  { id:"halo", kind:"acc", rarity:"epic", name:"Нимб", desc:"Светлый образ", price:1000, toggle:"halo" },
+  { id:"horns", kind:"acc", rarity:"epic", name:"Рога", desc:"Демонический образ", price:1000, toggle:"horns" },
+  { id:"auraAngel", kind:"acc", rarity:"legend", name:"Ангельская аура", desc:"Световой ореол", price:1400, toggle:"angel" },
+  { id:"auraDemon", kind:"acc", rarity:"legend", name:"Демоническая аура", desc:"Тёмное свечение", price:1400, toggle:"demon" }
+];
+
+function rarityLabel(r){
+  if (r==="legend") return "Легендарный";
+  if (r==="epic") return "Эпик";
+  if (r==="rare") return "Редкий";
+  return "Обычный";
+}
+function own(id){ return !!state.owned[id] || id==="skin_default"; }
+function isCosmeticActive(it){
+  if (it.kind==="skin") return state.cosmetics.skin === it.id.replace("skin_","");
+  if (it.toggle) return !!state.cosmetics[it.toggle];
+  return false;
+}
+function useCosmetic(it){
+  if(it.kind==="skin" && it.apply){
+    it.apply();
+  }else if(it.toggle){
+    // angel/demon mutually exclusive
+    if(it.toggle==="angel"){
+      state.cosmetics.angel = !state.cosmetics.angel;
+      if(state.cosmetics.angel) state.cosmetics.demon = false;
+    } else if(it.toggle==="demon"){
+      state.cosmetics.demon = !state.cosmetics.demon;
+      if(state.cosmetics.demon) state.cosmetics.angel = false;
+    } else {
+      state.cosmetics[it.toggle] = !state.cosmetics[it.toggle];
+    }
+  }
+  save(); updateUI();
+}
+function buyCosmetic(it){
+  const price = Math.max(1, Math.round(it.price * (1 - (state.shopDiscount||0))));
+  if(!own(it.id)){
+    if(state.points < price){
+      toast("Не хватает очков", `Нужно ${price}`, "SHOP");
+      return;
+    }
+    state.points -= price;
+    state.owned[it.id]=true;
+    toastOnce("buy_"+it.id, "Куплено!", it.name, "SHOP", 1400);
+  }
+  useCosmetic(it);
+  checkAchievements();
+}
+function renderCosmeticCard(it){
+  const ownedFlag = own(it.id);
+  const active = isCosmeticActive(it);
+  const price = Math.max(1, Math.round(it.price * (1 - (state.shopDiscount||0))));
+  const div = document.createElement("div");
+  div.className="item";
+  div.innerHTML = `
+    <div class="t">${active ? "✨ " : ""}${it.name}</div>
+    <div class="s">${it.desc}</div>
+    <div class="row">
+      <span class="tag">${rarityLabel(it.rarity)}</span>
+      <span class="tag">${ownedFlag ? "Куплено" : "Цена: "+price}</span>
+      <button class="btn ${active ? "primary":""}">
+        ${ownedFlag ? (active ? "Снять/ВКЛ" : "Применить") : "Купить"}
+      </button>
+    </div>`;
+  div.querySelector("button").addEventListener("click", ()=>{ uiBeep(); buyCosmetic(it); });
+  return div;
+}
+function renderShop(){
+  const skinsBox = document.getElementById("skinShopSkins");
+  const accsBox = document.getElementById("skinShopAccs");
+  if(!skinsBox || !accsBox) return;
+  skinsBox.innerHTML=""; accsBox.innerHTML="";
+  for(const it of cosmeticItems){
+    const card = renderCosmeticCard(it);
+    (it.kind==="skin" ? skinsBox : accsBox).appendChild(card);
+  }
+}
+
+/* =========================
+  UI BINDINGS
+========================= */
+const pointsEl = document.getElementById("points");
+const levelEl  = document.getElementById("level");
+const rankEl   = document.getElementById("rank");
+const ppcEl    = document.getElementById("ppc");
+const critEl   = document.getElementById("crit");
+const critMultEl = document.getElementById("critMult");
+const comboEl  = document.getElementById("combo");
+const autoEl   = document.getElementById("auto");
+const clicksEl = document.getElementById("clicks");
+const critsEl  = document.getElementById("crits");
+const xpBar    = document.getElementById("xpBar");
+const xpText   = document.getElementById("xpText");
+
+function renderAchievements(){
+  const box = document.getElementById("achList");
+  if(!box) return;
+  box.innerHTML="";
+  for(const a of achievements){
+    const done = !!state._ach[a.id];
+    const div = document.createElement("div");
+    div.className="item";
+    div.innerHTML = `
+      <div class="t">${done ? "✅ " : "🔒 "}${a.name}</div>
+      <div class="s">${a.desc}</div>
+      <div class="row">
+        <span class="tag">${done ? "Получено" : "Награда: +"+a.reward}</span>
+        <span class="tag">ID: ${a.id}</span>
+      </div>`;
+    box.appendChild(div);
+  }
+}
+function renderRanks(){
+  const box = document.getElementById("rankList");
+  if(!box) return;
+  box.innerHTML="";
+  for(const r of ranks){
+    const on = state.level >= r.lvl;
+    const div = document.createElement("div");
+    div.className="item";
+    div.innerHTML = `
+      <div class="t">${on ? "🟩" : "⬛"} ${r.name}</div>
+      <div class="s">Открывается с уровня ${r.lvl}</div>
+      <div class="row"><span class="tag">${on ? "Открыто" : "Закрыто"}</span></div>`;
+    box.appendChild(div);
+  }
+}
+function renderUpgrades(){
+  const box = document.getElementById("upgradeList");
+  if(!box) return;
+  box.innerHTML="";
+  for(const u of upgrades){
+    const price = upgradePrice(u);
+    const lvl = u.level();
+    const div = document.createElement("div");
+    div.className="item";
+    div.innerHTML = `
+      <div class="t">${u.name}</div>
+      <div class="s">${u.desc}</div>
+      <div class="row">
+        <span class="tag">Уровень: ${lvl}</span>
+        <span class="tag">Цена: ${price}</span>
+        <button class="btn ${state.points>=price ? "primary":""}">Купить</button>
+      </div>`;
+    div.querySelector("button").addEventListener("click", ()=>{
+      uiBeep();
+      const p = upgradePrice(u);
+      if(state.points < p){
+        toast("Не хватает очков", `Нужно ${p}`, "SHOP");
+        return;
+      }
+      state.points -= p;
+      u.buy();
+      updateUI();
+      save();
+    });
+    box.appendChild(div);
+  }
+}
+
+/* =========================
+  GAME ECONOMY / CLICK
+========================= */
+function addXP(x){
+  state.xp += Math.round(x * (state.xpBoost||1));
+  while(state.xp >= state.xpNeed){
+    state.xp -= state.xpNeed;
+    state.level++;
+    state.xpNeed = Math.round(20 + (state.level-1)*7);
+
+    const bonus = Math.round(10 + state.level*2);
+    state.points += bonus;
+    toastOnce("lvl_"+state.level, "Новый уровень!", `Уровень ${state.level} (+${bonus} очков)`, "LEVEL UP", 2200);
+  }
+}
+function rollCrit(){ return Math.random() < state.critChance; }
+
+function clickLogic(mult = 1){
+  const now = Date.now();
+  const fast = (now - state.comboLastHit) < state.comboDecayMs;
+  state.comboLastHit = now;
+
+  // комбо растёт мягко
+  if(fast){
+    if(Math.random() < 0.18) state.combo = Math.min(25, state.combo + 1);
+  }else{
+    state.combo = 1;
+  }
+
+  const crit = rollCrit();
+  const comboBonus = 1 + (state.combo - 1) * 0.08; // мягкий бонус
+  const safeMult = Math.min(mult, 2.2);
+
+  let gain = state.ppc * comboBonus * safeMult;
+  if(crit) gain *= (state.critMult||2.2);
+  gain = Math.max(1, Math.round(gain));
+
+  // event effects
+  gain *= eventClickMultiplier();
+
+  state.points += Math.round(gain);
+  state.stats.clicks++;
+  if(crit) state.stats.crits++;
+
+  addXP(1 + (crit?1:0));
+
+  // bonus drop
+  const dropChance = state.bonusDropChance || 0;
+  if(Math.random() < dropChance){
+    const bonus = Math.max(1, Math.round(state.ppc * 0.75));
+    state.points += bonus;
+    toastOnce("drop_"+Math.floor(now/400), "Бонус!", `+${bonus} очков`, "DROP", 450);
+  }
+
+  // daily progress
+  dailyTick("click", 1);
+
+  updateUI();
+  checkAchievements();
+  save();
+}
+
+setInterval(()=>{
+  if(Date.now() - state.comboLastHit > state.comboDecayMs) state.combo = 1;
+  updateUI(false);
+}, 250);
+
+/* =========================
+  AUTCLICK
+========================= */
+setInterval(()=>{
+  if(state.autoClickers>0){
+    // passive clicks: no croak, no fx
+    const gain = Math.max(1, Math.round(state.autoClickers * (state.ppc*0.18)));
+    state.points += Math.round(gain * eventClickMultiplier());
+    addXP(0.35);
+    dailyTick("auto", gain);
+    updateUI(false);
+    save();
+  }
+}, 1000);
+
+/* =========================
+  EVENTS
+========================= */
+const events = [
+  { id:"none", name:"Тихий пруд", desc:"Без бонусов." },
+  { id:"rain", name:"Дождь в болоте", desc:"+20% очков за клики на 2 минуты", clickMul:1.2, dur:120000 },
+  { id:"buzz", name:"Стая мух", desc:"+25% наград мини-игр на 2 минуты", miniMul:1.25, dur:120000 },
+  { id:"moon", name:"Лунная слизь", desc:"+10% крит-шанс на 2 минуты", critBonus:0.10, dur:120000 }
+];
+
+function setEvent(id){
+  const e = events.find(x=>x.id===id) || events[0];
+  state.event.id = e.id;
+  state.event.until = e.id==="none" ? 0 : (Date.now() + e.dur);
+  save();
+  updateEventUI();
+}
+function getActiveEvent(){
+  if(state.event?.id && state.event.id!=="none" && Date.now() < (state.event.until||0)){
+    return events.find(x=>x.id===state.event.id) || events[0];
+  }
+  return events[0];
+}
+function eventClickMultiplier(){
+  const e = getActiveEvent();
+  return e.clickMul || 1;
+}
+function eventMiniMultiplier(){
+  const e = getActiveEvent();
+  return e.miniMul || 1;
+}
+function eventCritBonus(){
+  const e = getActiveEvent();
+  return e.critBonus || 0;
+}
+function updateEventUI(){
+  const e = getActiveEvent();
+  document.getElementById("eventText").textContent = `${e.name}: ${e.desc}`;
+  document.getElementById("eventTag").textContent = e.id==="none" ? "EVENT" : "ACTIVE";
+}
+document.getElementById("rerollEvent").addEventListener("click", ()=>{
+  uiBeep();
+  const pick = events[Math.floor(Math.random()*events.length)];
+  setEvent(pick.id);
+  toast("Событие", pick.name, "EVENT");
+});
+
+/* =========================
+  DAILY QUESTS
+========================= */
+const dailyTemplates = [
+  { id:"d_clicks", text:"Сделай 150 кликов", type:"click", goal:150, reward:350 },
+  { id:"d_crits",  text:"Сделай 20 критов", type:"crit", goal:20, reward:420 },
+  { id:"d_flies",  text:"Выиграй охоту на мух 1 раз", type:"fliesWin", goal:1, reward:380 },
+  { id:"d_pads",   text:"Выиграй болото-память 1 раз", type:"padsWin", goal:1, reward:380 },
+  { id:"d_raid",   text:"Набери 900 очков в рейде", type:"raidScore", goal:900, reward:520 }
+];
+
+function ensureDaily(){
+  const day = nowDayKey();
+  state.meta.lastLoginDay ||= day;
+  if(!state.meta.daily || state.meta.daily.day !== day){
+    const q = dailyTemplates[Math.floor(Math.random()*dailyTemplates.length)];
+    state.meta.daily = { day, id:q.id, type:q.type, goal:q.goal, reward:q.reward, prog:0, done:false };
+    state.meta.dailyClaimedDay = "";
+    save();
+  }
+  updateDailyUI();
+}
+function dailyTick(type, amount){
+  const d = state.meta.daily;
+  if(!d || d.day !== nowDayKey() || d.done) return;
+
+  if(type==="click" && d.type==="click") d.prog += amount;
+  if(type==="crit"  && d.type==="crit")  d.prog += amount;
+  // auto not used in daily currently
+
+  if(d.type==="raidScore"){ /* handled on end */ }
+  if(d.type==="fliesWin"){ /* handled on win */ }
+  if(d.type==="padsWin"){ /* handled on win */ }
+
+  if(d.prog >= d.goal){
+    d.done = true;
+  }
+  updateDailyUI();
+}
+function dailySetProg(type, value){
+  const d = state.meta.daily;
+  if(!d || d.day !== nowDayKey() || d.done) return;
+  if(d.type === type){
+    d.prog = Math.max(d.prog, value);
+    if(d.prog >= d.goal) d.done = true;
+    updateDailyUI();
+  }
+}
+function updateDailyUI(){
+  const d = state.meta.daily;
+  if(!d){
+    document.getElementById("dailyText").textContent="—";
+    document.getElementById("dailyProg").textContent="0 / 0";
+    return;
+  }
+  const templ = dailyTemplates.find(x=>x.id===d.id);
+  document.getElementById("dailyText").textContent = `${templ?.text || "Задание"} · Награда: +${d.reward}`;
+  document.getElementById("dailyProg").textContent = `${Math.min(d.prog,d.goal)} / ${d.goal}`;
+  const canClaim = d.done && state.meta.dailyClaimedDay !== nowDayKey();
+  document.getElementById("claimDaily").disabled = !canClaim;
+}
+document.getElementById("claimDaily").addEventListener("click", ()=>{
+  uiBeep();
+  const d = state.meta.daily;
+  if(!d || !d.done) return;
+  if(state.meta.dailyClaimedDay === nowDayKey()) return;
+  state.points += d.reward;
+  state.meta.dailyClaimedDay = nowDayKey();
+  toast("Ежедневка выполнена!", `+${d.reward} очков`, "DAILY");
+  save(); updateUI();
+});
+
+/* =========================
+  SETTINGS / AUTOSAVE
+========================= */
+let autosaveTimer=null;
+function restartAutosave(){
+  if(autosaveTimer) clearInterval(autosaveTimer);
+  const sec = Number(state.settings.autosaveSec || 0);
+  if(sec>0) autosaveTimer = setInterval(save, sec*1000);
+}
+function initSettingsUI(){
+  const autosaveSelect = document.getElementById("autosaveSelect");
+  const muteBtn = document.getElementById("muteBtn");
+  const toggleParticles = document.getElementById("toggleParticles");
+  const toggleShadows = document.getElementById("toggleShadows");
+  const fxQualityBtn = document.getElementById("fxQualityBtn");
+  const volMaster = document.getElementById("volMaster");
+  const volCroak = document.getElementById("volCroak");
+  const volAch = document.getElementById("volAch");
+  const volUi = document.getElementById("volUi");
+
+  autosaveSelect.value = String(state.settings.autosaveSec ?? 10);
+  volMaster.value = state.settings.volumeMaster ?? 1;
+  volCroak.value = state.settings.volumeCroak ?? 1;
+  volAch.value = state.settings.volumeAch ?? 0.9;
+  volUi.value = state.settings.volumeUi ?? 0.8;
+
+  muteBtn.textContent = `Звук: ${state.muted ? "ВЫКЛ" : "ВКЛ"}`;
+  toggleParticles.textContent = `Частицы: ${state.settings.particles ? "ВКЛ" : "ВЫКЛ"}`;
+  toggleShadows.textContent = `Тени: ${state.settings.shadows ? "ВКЛ" : "ВЫКЛ"}`;
+  fxQualityBtn.textContent = `FX: ${state.settings.fxQuality || "high"}`;
+
+  autosaveSelect.addEventListener("change", ()=>{
+    uiBeep();
+    state.settings.autosaveSec = Number(autosaveSelect.value);
+    restartAutosave(); save();
+    toast("Настройки", "Автосохранение обновлено", "SETTINGS");
+  });
+
+  muteBtn.addEventListener("click", ()=>{
+    uiBeep();
+    state.muted = !state.muted;
+    muteBtn.textContent = `Звук: ${state.muted ? "ВЫКЛ" : "ВКЛ"}`;
+    save();
+  });
+
+  toggleParticles.addEventListener("click", ()=>{
+    uiBeep();
+    state.settings.particles = !state.settings.particles;
+    toggleParticles.textContent = `Частицы: ${state.settings.particles ? "ВКЛ" : "ВЫКЛ"}`;
+    save();
+  });
+
+  toggleShadows.addEventListener("click", ()=>{
+    uiBeep();
+    state.settings.shadows = !state.settings.shadows;
+    toggleShadows.textContent = `Тени: ${state.settings.shadows ? "ВКЛ" : "ВЫКЛ"}`;
+    save();
+  });
+
+  fxQualityBtn.addEventListener("click", ()=>{
+    uiBeep();
+    const order=["low","mid","high"];
+    const cur=state.settings.fxQuality||"high";
+    const next=order[(order.indexOf(cur)+1)%order.length];
+    state.settings.fxQuality=next;
+    fxQualityBtn.textContent=`FX: ${next}`;
+    save();
+  });
+
+  volMaster.addEventListener("input", ()=>{ state.settings.volumeMaster=Number(volMaster.value); save(); });
+  volCroak.addEventListener("input", ()=>{ state.settings.volumeCroak=Number(volCroak.value); save(); });
+  volAch.addEventListener("input", ()=>{ state.settings.volumeAch=Number(volAch.value); save(); });
+  volUi.addEventListener("input", ()=>{ state.settings.volumeUi=Number(volUi.value); save(); });
+}
+
+/* =========================
+  TABS
+========================= */
+function openTab(tab){
+  document.querySelectorAll(".tabBtn[data-tab]").forEach(b=>b.classList.remove("active"));
+  document.querySelector(`.tabBtn[data-tab="${tab}"]`)?.classList.add("active");
+  document.querySelectorAll(".tabPane").forEach(p=>p.classList.remove("active"));
+  document.getElementById("tab-"+tab)?.classList.add("active");
+}
+document.querySelectorAll(".tabBtn[data-tab]").forEach(btn=>{
+  btn.addEventListener("click", ()=>{ uiBeep(); openTab(btn.dataset.tab); });
+});
+
+/* games subtabs */
+function openSubGame(id){
+  document.querySelectorAll(".subTabs .tabBtn").forEach(b=>b.classList.remove("active"));
+  document.querySelector(`.subTabs .tabBtn[data-subgame="${id}"]`)?.classList.add("active");
+  document.querySelectorAll(".subPane").forEach(p=>p.classList.remove("active"));
+  document.getElementById("subgame-"+id)?.classList.add("active");
+}
+document.querySelectorAll(".subTabs .tabBtn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{ uiBeep(); openSubGame(btn.dataset.subgame); });
+});
+
+/* =========================
+  ACCOUNT UI + TITLES + SAVE IO
+========================= */
+const avatarBox = document.getElementById("avatarBox");
+const avatarFile = document.getElementById("avatarFile");
+const nickInput = document.getElementById("nickInput");
+const bioInput = document.getElementById("bioInput");
+const profileMeta = document.getElementById("profileMeta");
+const titleSelect = document.getElementById("titleSelect");
+const activeTitleTag = document.getElementById("activeTitleTag");
+
+function renderAvatar(){
+  avatarBox.innerHTML="";
+  if(state.account.avatarDataUrl){
+    const img=document.createElement("img");
+    img.src=state.account.avatarDataUrl;
+    avatarBox.appendChild(img);
+  }else{
+    const s=document.createElement("span");
+    s.style.cssText="font-weight:950;color:#eaf2ffcc";
+    s.textContent="+";
+    avatarBox.appendChild(s);
+  }
+}
+avatarBox.addEventListener("click", ()=>{ uiBeep(); avatarFile.click(); });
+avatarFile.addEventListener("change", ()=>{
+  const f=avatarFile.files?.[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ state.account.avatarDataUrl=String(r.result); renderAvatar(); save(); };
+  r.readAsDataURL(f);
+});
+
+document.getElementById("accSave").addEventListener("click", ()=>{
+  uiBeep();
+  state.account.nick = nickInput.value.trim().slice(0,24);
+  state.account.bio  = bioInput.value.trim().slice(0,140);
+  save();
+  toast("Профиль сохранён", state.account.nick ? `Ник: ${state.account.nick}` : "Ник не задан", "ACCOUNT");
+  updateUI();
+});
+document.getElementById("accClear").addEventListener("click", ()=>{
+  uiBeep();
+  state.account.avatarDataUrl="";
+  renderAvatar(); save();
+  toast("Фото удалено", "Аватар очищен", "ACCOUNT");
+});
+
+function renderTitles(){
+  titleSelect.innerHTML="";
+  const available = titles.filter(t=>t.req());
+  for(const t of available){
+    const opt=document.createElement("option");
+    opt.value=t.id; opt.textContent=t.id;
+    titleSelect.appendChild(opt);
+  }
+  if(!available.some(t=>t.id===state.meta.title)){
+    state.meta.title = available[0]?.id || "Новичок болота";
+  }
+  titleSelect.value = state.meta.title;
+  activeTitleTag.textContent = state.meta.title;
+}
+titleSelect.addEventListener("change", ()=>{
+  uiBeep();
+  state.meta.title = titleSelect.value;
+  activeTitleTag.textContent = state.meta.title;
+  save();
+});
+
+document.getElementById("exportSave").addEventListener("click", ()=>{
+  uiBeep();
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `frog_save_${nowDayKey()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+});
+const importFile = document.getElementById("importFile");
+document.getElementById("importSave").addEventListener("click", ()=>{ uiBeep(); importFile.click(); });
+importFile.addEventListener("change", ()=>{
+  const f=importFile.files?.[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(String(r.result));
+      localStorage.setItem(KEY, JSON.stringify(d));
+      location.reload();
+    }catch{
+      toast("Ошибка", "Не удалось импортировать JSON", "SAVE");
+    }
+  };
+  r.readAsText(f);
+});
+
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  uiBeep();
+  if(!confirm("Сбросить прогресс?")) return;
+  localStorage.removeItem(KEY);
+  location.reload();
+});
+
+/* =========================
+  SAVE BUTTON
+========================= */
+document.getElementById("saveBtn").addEventListener("click", ()=>{
+  uiBeep();
+  save();
+  toast("Сохранено", "Прогресс сохранён", "SAVE");
+});
+
+/* =========================
+  UPDATE UI
+========================= */
+function updateProfileMeta(){
+  const dt = new Date(state.meta.createdAt || Date.now());
+  profileMeta.textContent = `Профиль создан: ${dt.toLocaleDateString("ru-RU")} · Титул: ${state.meta.title}`;
+}
+
+function updateUI(full=true){
+  pointsEl.textContent = state.points.toLocaleString("ru-RU");
+  levelEl.textContent = state.level;
+  rankEl.textContent  = currentRank().name;
+
+  ppcEl.textContent = state.ppc;
+  // apply event crit bonus only for display (not permanently)
+  const critShown = clamp(state.critChance + eventCritBonus(), 0, 0.9);
+  critEl.textContent = Math.round(critShown*100)+"%";
+  critMultEl.textContent = (state.critMult||2.2).toFixed(2)+"x";
+  comboEl.textContent = "x"+state.combo;
+  autoEl.textContent = state.autoClickers;
+
+  clicksEl.textContent = state.stats.clicks.toLocaleString("ru-RU");
+  critsEl.textContent  = state.stats.crits.toLocaleString("ru-RU");
+
+  xpBar.style.width = clamp((state.xp/state.xpNeed)*100,0,100)+"%";
+  xpText.textContent = `${state.xp} / ${state.xpNeed} XP`;
+
+  if(full){
+    renderUpgrades();
+    renderShop();
+    renderAchievements();
+    renderRanks();
+    renderTitles();
+  }
+  updateProfileMeta();
+  updateDailyUI();
+  updateEventUI();
+}
+
+/* =========================
+  FROG DRAW (based on your reference: droopy eyes + speckled texture)
+========================= */
+const frogCanvas = document.getElementById("frog");
+const fctx = frogCanvas.getContext("2d");
+
+const fx = { ripples:[], particles:[], lastClick:0, squash:0 };
+
+function addClickFX(px,py, strong=false){
+  if(!state.settings.particles) return;
+  const W=frogCanvas.width, H=frogCanvas.height;
+  fx.ripples.push({x:px*W, y:py*H, t:performance.now(), d: strong? 720: 520, strong});
+  const n = strong ? 28 : 16;
+  for(let i=0;i<n;i++){
+    const ang = rand(0, Math.PI*2);
+    const sp = strong ? rand(120,240) : rand(80,170);
+    fx.particles.push({
+      x:px*W, y:py*H, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp,
+      r: strong ? rand(2.4,4.4) : rand(1.8,3.6),
+      t:performance.now(), d: strong? 760 : 560
+    });
+  }
+}
+function isInsideFrog(px,py){
+  // approximate silhouette for click hit-test (no black squares)
+  const x = px-0.5, y = py-0.52;
+  const body = (x*x)/(0.38*0.38) + (y*y)/(0.32*0.32);
+  const hx = px-0.5, hy = py-0.44;
+  const head = (hx*hx)/(0.36*0.36) + (hy*hy)/(0.26*0.26);
+  return body<=1.08 || head<=1.08;
+}
+function skinPalette(){
+  // base: matches your provided cartoon ref (soft green + speckles)
+  let base = {a:"#6fd27a", b:"#3da95b", belly:"#b8f0b8"};
+  if(state.cosmetics.skin==="moss") base = {a:"#7bc26e", b:"#2f8050", belly:"#bde7b2"};
+  if(state.cosmetics.skin==="poison") base = {a:"#7cff7a", b:"#27c27d", belly:"#c6ffb8"};
+  if(state.cosmetics.skin==="obsidian") base = {a:"#2b4b3b", b:"#0e241c", belly:"#335a4b"};
+  if(state.cosmetics.skin==="ice") base = {a:"#78d7d9", b:"#2a9bb0", belly:"#c8ffff"};
+  // angel/demon overlays
+  if(state.cosmetics.angel) base = {a:"#8af7b5", b:"#46c8a6", belly:"#d9ffe6"};
+  if(state.cosmetics.demon) base = {a:"#376a55", b:"#142d26", belly:"#3b7860"};
+  return base;
+}
+function drawFrog(){
+  const W=frogCanvas.width, H=frogCanvas.height;
+  fctx.clearRect(0,0,W,H);
+
+  // background vignette
+  const bg = fctx.createRadialGradient(W*0.5,H*0.55, 40, W*0.5,H*0.55, W*0.62);
+  bg.addColorStop(0, "rgba(26,200,255,0.09)");
+  bg.addColorStop(0.55, "rgba(53,240,163,0.06)");
+  bg.addColorStop(1, "rgba(0,0,0,0.45)");
+  fctx.fillStyle=bg; fctx.fillRect(0,0,W,H);
+
+  // ground shadow
+  if(state.settings.shadows){
+    fctx.save();
+    fctx.translate(W/2, H*0.70);
+    fctx.scale(1.2, 0.75);
+    const sh = fctx.createRadialGradient(0,0, 60, 0,0, 320);
+    sh.addColorStop(0,"rgba(0,0,0,0.38)");
+    sh.addColorStop(1,"rgba(0,0,0,0)");
+    fctx.fillStyle=sh;
+    fctx.beginPath(); fctx.ellipse(0,0, 320, 240, 0,0,Math.PI*2);
+    fctx.fill();
+    fctx.restore();
+  }
+
+  // squash animation
+  const t = Math.min(1, (Date.now()-fx.lastClick)/130);
+  fx.squash = lerp(0.10, 0, t);
+  const squash = 1 - fx.squash;
+
+  const pal = skinPalette();
+
+  fctx.save();
+  fctx.translate(W/2, H*0.54);
+  fctx.scale(1.0, squash);
+
+  // legs (simple “cartoon” but textured)
+  function leg(x, y, flip=1){
+    fctx.save();
+    fctx.translate(x,y);
+    fctx.scale(flip,1);
+    const g = fctx.createRadialGradient(-80,-20, 20, 0,0, 220);
+    g.addColorStop(0, "rgba(255,255,255,0.12)");
+    g.addColorStop(0.3, pal.a);
+    g.addColorStop(1, pal.b);
+    fctx.fillStyle=g;
+    fctx.beginPath();
+    fctx.ellipse(0, 120, 250, 170, 0.08, 0, Math.PI*2);
+    fctx.fill();
+    fctx.restore();
+  }
+  leg(-250, 70, 1);
+  leg( 250, 70,-1);
+
+  // body
+  const bodyG = fctx.createRadialGradient(-110,-120, 70, 0,80, 520);
+  bodyG.addColorStop(0, "rgba(255,255,255,0.18)");
+  bodyG.addColorStop(0.28, pal.a);
+  bodyG.addColorStop(1, pal.b);
+  fctx.fillStyle = bodyG;
+  fctx.beginPath();
+  fctx.ellipse(0, 90, 330, 280, 0, 0, Math.PI*2);
+  fctx.fill();
+
+  // belly
+  const bellyG = fctx.createRadialGradient(0, 160, 60, 0, 210, 260);
+  bellyG.addColorStop(0, "rgba(255,255,255,0.22)");
+  bellyG.addColorStop(0.25, pal.belly);
+  bellyG.addColorStop(1, "rgba(255,255,255,0)");
+  fctx.fillStyle = bellyG;
+  fctx.beginPath();
+  fctx.ellipse(0, 215, 210, 160, 0, 0, Math.PI*2);
+  fctx.fill();
+
+  // head (flat-ish like ref)
+  const headG = fctx.createRadialGradient(-100,-230, 50, 0,-110, 430);
+  headG.addColorStop(0, "rgba(255,255,255,0.18)");
+  headG.addColorStop(0.32, pal.a);
+  headG.addColorStop(1, pal.b);
+  fctx.fillStyle=headG;
+  fctx.beginPath();
+  fctx.ellipse(0, -80, 320, 220, 0, 0, Math.PI*2);
+  fctx.fill();
+
+  // speckle texture (ref style)
+  const speckCount = state.settings.fxQuality==="low" ? 120 : (state.settings.fxQuality==="mid" ? 220 : 360);
+  fctx.globalAlpha = 0.22;
+  fctx.fillStyle = "rgba(0,0,0,0.55)";
+  for(let i=0;i<speckCount;i++){
+    const x = rand(-290,290);
+    const y = rand(-240,260);
+    const r = rand(1.0, 3.3);
+    fctx.beginPath(); fctx.arc(x,y,r,0,Math.PI*2); fctx.fill();
+  }
+  fctx.globalAlpha = 1;
+
+  // mouth line (flat, bored)
+  fctx.strokeStyle="rgba(255,255,255,0.85)";
+  fctx.lineWidth=10;
+  fctx.lineCap="round";
+  fctx.beginPath();
+  fctx.moveTo(-210, -40);
+  fctx.quadraticCurveTo(0, -10, 210, -40);
+  fctx.stroke();
+
+  fctx.strokeStyle="rgba(0,0,0,0.18)";
+  fctx.lineWidth=8;
+  fctx.beginPath();
+  fctx.moveTo(-200, -36);
+  fctx.quadraticCurveTo(0, -6, 200, -36);
+  fctx.stroke();
+
+  // eyes (droopy like ref)
+  function eye(x){
+    // eye base
+    const eg = fctx.createRadialGradient(x-30,-260, 18, x,-250, 110);
+    eg.addColorStop(0, "rgba(255,255,255,0.25)");
+    eg.addColorStop(0.28, pal.a);
+    eg.addColorStop(1, pal.b);
+    fctx.fillStyle=eg;
+    fctx.beginPath(); fctx.ellipse(x, -250, 90, 70, 0, 0, Math.PI*2); fctx.fill();
+
+    // white part (droopy lid)
+    fctx.fillStyle="rgba(245,250,255,0.95)";
+    fctx.beginPath(); fctx.ellipse(x, -252, 60, 44, 0, 0, Math.PI*2); fctx.fill();
+
+    // upper lid (green cap)
+    fctx.fillStyle = pal.b;
+    fctx.globalAlpha = 0.85;
+    fctx.beginPath();
+    fctx.ellipse(x, -270, 62, 40, 0, 0, Math.PI*2);
+    fctx.fill();
+    fctx.globalAlpha = 1;
+
+    // iris tiny (sleepy)
+    fctx.fillStyle="rgba(40,120,180,0.9)";
+    fctx.beginPath(); fctx.ellipse(x+14, -240, 12, 10, 0, 0, Math.PI*2); fctx.fill();
+  }
+  eye(-160); eye(160);
+
+  // small hands on belly (ref-ish)
+  fctx.strokeStyle="rgba(255,255,255,0.9)";
+  fctx.lineWidth=10; fctx.lineCap="round";
+  fctx.beginPath();
+  fctx.moveTo(-80, 150); fctx.quadraticCurveTo(-95, 190, -70, 205);
+  fctx.moveTo(80, 150); fctx.quadraticCurveTo(95, 190, 70, 205);
+  fctx.stroke();
+
+  // Accessories (more “cool”)
+  drawAccessories(pal);
+
+  // aura overlays
+  if(state.cosmetics.angel || state.cosmetics.demon){
+    fctx.save();
+    fctx.globalCompositeOperation="screen";
+    if(state.cosmetics.angel){
+      const a = fctx.createRadialGradient(0,-80, 120, 0,-60, 560);
+      a.addColorStop(0,"rgba(255,255,255,0.14)");
+      a.addColorStop(1,"rgba(255,255,255,0)");
+      fctx.fillStyle=a;
+      fctx.beginPath(); fctx.ellipse(0, 0, 560, 480, 0,0,Math.PI*2); fctx.fill();
+    }else{
+      const a = fctx.createRadialGradient(0,20, 120, 0,30, 560);
+      a.addColorStop(0,"rgba(255,60,90,0.14)");
+      a.addColorStop(1,"rgba(255,60,90,0)");
+      fctx.fillStyle=a;
+      fctx.beginPath(); fctx.ellipse(0, 20, 560, 480, 0,0,Math.PI*2); fctx.fill();
+    }
+    fctx.restore();
+  }
+
+  fctx.restore();
+
+  // FX on top
+  drawFX();
+}
+function drawAccessories(pal){
+  // in frog local coords (already translated)
+  // chain
+  if(state.cosmetics.chainGold){
+    fctx.save();
+    fctx.translate(0, 30);
+    fctx.strokeStyle = "rgba(255,220,120,0.95)";
+    fctx.lineWidth = 16;
+    fctx.lineCap="round";
+    fctx.beginPath();
+    fctx.arc(0, 0, 220, Math.PI*0.18, Math.PI*0.82);
+    fctx.stroke();
+    // pendant
+    fctx.fillStyle="rgba(255,220,120,0.95)";
+    fctx.beginPath(); fctx.ellipse(0, 175, 32, 44, 0,0,Math.PI*2); fctx.fill();
+    fctx.restore();
+  }
+  // cyber visor
+  if(state.cosmetics.cyberVisor){
+    fctx.save();
+    fctx.translate(0, -245);
+    fctx.fillStyle="rgba(10,20,30,0.35)";
+    fctx.strokeStyle="rgba(0,0,0,0.6)";
+    fctx.lineWidth=10;
+    fctx.beginPath(); fctx.roundRect(-240,-40, 480, 90, 40); fctx.fill(); fctx.stroke();
+    fctx.globalCompositeOperation="screen";
+    fctx.strokeStyle="rgba(26,200,255,0.45)";
+    fctx.lineWidth=6;
+    fctx.beginPath(); fctx.roundRect(-220,-20, 440, 50, 28); fctx.stroke();
+    fctx.globalCompositeOperation="source-over";
+    fctx.restore();
+  }
+  // monocle
+  if(state.cosmetics.monocle){
+    fctx.save();
+    fctx.translate(-145, -250);
+    fctx.strokeStyle="rgba(0,0,0,0.6)";
+    fctx.lineWidth=8;
+    fctx.beginPath(); fctx.ellipse(0,0, 50, 40, 0,0,Math.PI*2); fctx.stroke();
+    fctx.strokeStyle="rgba(255,220,120,0.75)";
+    fctx.lineWidth=4;
+    fctx.beginPath(); fctx.moveTo(46, 28); fctx.lineTo(90, 80); fctx.stroke();
+    fctx.restore();
+  }
+  // crown
+  if(state.cosmetics.crown){
+    fctx.save();
+    fctx.translate(0, -360);
+    fctx.fillStyle="rgba(255,209,102,0.95)";
+    fctx.strokeStyle="rgba(0,0,0,0.35)";
+    fctx.lineWidth=6;
+    fctx.beginPath();
+    fctx.moveTo(-160, 80);
+    fctx.lineTo(-120, 20);
+    fctx.lineTo(-60, 80);
+    fctx.lineTo(0, 18);
+    fctx.lineTo(60, 80);
+    fctx.lineTo(120, 20);
+    fctx.lineTo(160, 80);
+    fctx.closePath();
+    fctx.fill(); fctx.stroke();
+    // gems
+    fctx.globalCompositeOperation="screen";
+    fctx.fillStyle="rgba(26,200,255,0.35)";
+    fctx.beginPath(); fctx.ellipse(0,70, 20, 14, 0,0,Math.PI*2); fctx.fill();
+    fctx.restore();
+  }
+  // spikes collar
+  if(state.cosmetics.spikes){
+    fctx.save();
+    fctx.translate(0, 40);
+    fctx.fillStyle="rgba(0,0,0,0.35)";
+    for(let i=-4;i<=4;i++){
+      const x=i*55;
+      fctx.beginPath();
+      fctx.moveTo(x, 120);
+      fctx.lineTo(x+18, 80);
+      fctx.lineTo(x+36, 120);
+      fctx.closePath();
+      fctx.fill();
+    }
+    fctx.restore();
+  }
+  // halo
+  if(state.cosmetics.halo){
+    fctx.save();
+    fctx.translate(0, -390);
+    fctx.strokeStyle="rgba(255,235,160,0.95)";
+    fctx.lineWidth=16;
+    fctx.beginPath(); fctx.ellipse(0,0, 170, 45, 0,0,Math.PI*2); fctx.stroke();
+    fctx.globalCompositeOperation="screen";
+    fctx.strokeStyle="rgba(255,255,255,0.35)";
+    fctx.lineWidth=6;
+    fctx.beginPath(); fctx.ellipse(0,0, 176, 52, 0,0,Math.PI*2); fctx.stroke();
+    fctx.restore();
+  }
+  // horns
+  if(state.cosmetics.horns){
+    fctx.save();
+    fctx.translate(0, -360);
+    fctx.fillStyle="rgba(10,10,10,0.85)";
+    fctx.beginPath();
+    fctx.moveTo(-200, 120);
+    fctx.quadraticCurveTo(-270, 30, -210, 10);
+    fctx.quadraticCurveTo(-175, 30, -200, 120);
+    fctx.fill();
+    fctx.beginPath();
+    fctx.moveTo(200, 120);
+    fctx.quadraticCurveTo(270, 30, 210, 10);
+    fctx.quadraticCurveTo(175, 30, 200, 120);
+    fctx.fill();
+    fctx.restore();
+  }
+  // scar
+  if(state.cosmetics.scar){
+    fctx.save();
+    fctx.strokeStyle="rgba(255,120,120,0.55)";
+    fctx.lineWidth=8;
+    fctx.lineCap="round";
+    fctx.beginPath();
+    fctx.moveTo(-40, -160);
+    fctx.quadraticCurveTo(30, -125, 90, -140);
+    fctx.stroke();
+    fctx.restore();
+  }
+}
+
+CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+  r = Math.min(r, w/2, h/2);
+  this.beginPath();
+  this.moveTo(x+r, y);
+  this.arcTo(x+w, y, x+w, y+h, r);
+  this.arcTo(x+w, y+h, x, y+h, r);
+  this.arcTo(x, y+h, x, y, r);
+  this.arcTo(x, y, x+w, y, r);
+  this.closePath();
+  return this;
+};
+
+function drawFX(){
+  if(!state.settings.particles) return;
+  const now = performance.now();
+
+  for(const r of fx.ripples){
+    const age = (now - r.t) / r.d;
+    if(age>=1) continue;
+    const a = 1-age;
+    fctx.save();
+    fctx.globalAlpha = a;
+    fctx.strokeStyle = r.strong ? "rgba(255,209,102,0.95)" : "rgba(255,255,255,0.9)";
+    fctx.lineWidth = 6;
+    fctx.beginPath();
+    fctx.arc(r.x, r.y, lerp(8, 130, age), 0, Math.PI*2);
+    fctx.stroke();
+    fctx.restore();
+  }
+
+  for(const p of fx.particles){
+    const age = (now - p.t)/p.d;
+    if(age>=1) continue;
+    const a = 1-age;
+    const x = p.x + p.vx*age*0.01;
+    const y = p.y + p.vy*age*0.01 + 0.12*age*age*80;
+    fctx.save();
+    fctx.globalAlpha = a;
+    const col = state.cosmetics.demon ? "rgba(255,60,90,0.95)" : "rgba(53,240,163,0.95)";
+    fctx.fillStyle = col;
+    fctx.beginPath();
+    fctx.arc(x, y, lerp(p.r, 0.2, age), 0, Math.PI*2);
+    fctx.fill();
+    fctx.restore();
+  }
+
+  fx.ripples = fx.ripples.filter(r=> (now-r.t)<r.d);
+  fx.particles = fx.particles.filter(p=> (now-p.t)<p.d);
+}
+
+/* =========================
+  CLICK HANDLERS
+========================= */
+const wrap = document.getElementById("frogWrap");
+let lastTap = 0;
+
+wrap.addEventListener("pointerdown", (e)=>{
+  const rect = frogCanvas.getBoundingClientRect();
+  const px = (e.clientX - rect.left) / rect.width;
+  const py = (e.clientY - rect.top) / rect.height;
+
+  if(!isInsideFrog(px,py)) return;
+
+  ensureAudio();
+
+  const now = Date.now();
+  const dbl = (now-lastTap) < 260;
+  lastTap = now;
+
+  fx.lastClick = Date.now();
+  addClickFX(px,py, dbl);
+
+  if(dbl){
+    clickLogic(2.0);
+    frogCroak(1.15);
+    toastOnce("power_"+Math.floor(now/2500), "Суперква!", "Двойной клик дал бонус", "POWER", 1400);
+  }else{
+    clickLogic(1);
+    frogCroak(1.0);
+  }
+
+  // daily: crit tracking
+  // (we count crits inside clickLogic by checking state.stats change via check below)
+});
+
+wrap.addEventListener("dblclick", e=>e.preventDefault());
+
+/* =========================
+  MINI GAME 1: FLIES HUNT
+========================= */
+const fliesC = document.getElementById("flies");
+const f2 = fliesC.getContext("2d");
+const fliesHud = document.getElementById("fliesHud");
+let fliesRun=false, fliesStartT=0, fliesScore=0, fliesCombo=1, fliesTime=0;
+let flies=[], fliesLastShot=0, fliesMiss=0;
+
+function fliesReset(){
+  fliesScore=0; fliesCombo=1; fliesMiss=0;
+  flies=[]; fliesStartT = performance.now();
+  for(let i=0;i<6;i++) spawnFly(false);
+  fliesHud.textContent = "Очки: 0 · Комбо: x1 · Время: 30";
+}
+function spawnFly(gold=false){
+  const r = gold ? 20 : rand(14, 24);
+  flies.push({
+    x: rand(r, 960-r),
+    y: rand(r, 540-r),
+    r, gold,
+    vx: rand(-140,140) * (gold?1.2:1),
+    vy: rand(-140,140) * (gold?1.2:1),
+    t: performance.now(),
+    life: gold ? rand(1600, 2600) : rand(2400, 4200)
+  });
+}
+function fliesEnd(){
+  fliesRun=false;
+  // payout with bonuses
+  const mul = (1 + (state.minigameBonus||0)) * eventMiniMultiplier();
+  const payout = Math.round(fliesScore * mul);
+  state.points += payout;
+  state.meta.fliesWins = (state.meta.fliesWins||0) + (fliesScore>0 ? 1 : 0);
+  toast("Охота завершена", `+${payout} очков (x${mul.toFixed(2)})`, "MINI GAME");
+  dailySetProg("fliesWin", 1);
+  save(); updateUI();
+}
+function drawFlies(){
+  f2.clearRect(0,0,960,540);
+  const now = performance.now();
+  const secLeft = Math.max(0, 30 - Math.floor((now - fliesStartT)/1000));
+  fliesTime = secLeft;
+
+  // bg
+  const g = f2.createLinearGradient(0,0,960,540);
+  g.addColorStop(0,"rgba(53,240,163,0.10)");
+  g.addColorStop(1,"rgba(26,200,255,0.06)");
+  f2.fillStyle=g; f2.fillRect(0,0,960,540);
+
+  // spawn chance for golden fly
+  if(Math.random() < 0.012 && flies.filter(x=>x.gold).length<1){
+    spawnFly(true);
+  }
+  while(flies.length < 6) spawnFly(false);
+
+  flies = flies.filter(o=> (now - o.t) < o.life);
+
+  const dt = 1/60;
+  for(const o of flies){
+    o.x += o.vx*dt; o.y += o.vy*dt;
+    if(o.x<o.r || o.x>960-o.r) o.vx*=-1;
+    if(o.y<o.r || o.y>540-o.r) o.vy*=-1;
+
+    // draw fly
+    f2.save();
+    f2.translate(o.x,o.y);
+    if(o.gold){
+      f2.fillStyle="rgba(255,209,102,0.65)";
+      f2.beginPath(); f2.ellipse(0,0, o.r*1.0, o.r*0.75, 0,0,Math.PI*2); f2.fill();
+      f2.globalCompositeOperation="screen";
+      f2.fillStyle="rgba(255,255,255,0.25)";
+      f2.beginPath(); f2.ellipse(0,0, o.r*1.3, o.r*1.05, 0,0,Math.PI*2); f2.fill();
+      f2.globalCompositeOperation="source-over";
+    }else{
+      f2.fillStyle="rgba(0,0,0,0.55)";
+      f2.beginPath(); f2.ellipse(0,0, o.r*0.9, o.r*0.7, 0,0,Math.PI*2); f2.fill();
+      f2.fillStyle="rgba(200,220,255,0.25)";
+      f2.beginPath(); f2.ellipse(-o.r*0.55,-o.r*0.3, o.r*0.7, o.r*0.35, -0.3,0,Math.PI*2); f2.fill();
+      f2.beginPath(); f2.ellipse( o.r*0.55,-o.r*0.3, o.r*0.7, o.r*0.35, 0.3,0,Math.PI*2); f2.fill();
+    }
+    f2.restore();
+  }
+
+  fliesHud.textContent = `Очки: ${fliesScore} · Комбо: x${fliesCombo} · Промахи: ${fliesMiss} · Время: ${secLeft}`;
+
+  if(secLeft<=0) fliesEnd();
+}
+
+fliesC.addEventListener("pointerdown",(e)=>{
+  if(!fliesRun) return;
+  const rect = fliesC.getBoundingClientRect();
+  const x = (e.clientX-rect.left)/rect.width*960;
+  const y = (e.clientY-rect.top)/rect.height*540;
+
+  // fire rate limit
+  const t = performance.now();
+  if(t - fliesLastShot < 60) return;
+  fliesLastShot = t;
+
+  // hit test: closest fly
+  let hitIndex=-1, best=1e9;
+  for(let i=0;i<flies.length;i++){
+    const o=flies[i];
+    const d=Math.hypot(x-o.x, y-o.y);
+    const hitR = o.r*1.25;
+    if(d<=hitR && d<best){ best=d; hitIndex=i; }
+  }
+  if(hitIndex>=0){
+    const o = flies[hitIndex];
+    flies.splice(hitIndex,1);
+    const base = o.gold ? 60 : 14;
+    fliesScore += Math.round(base * fliesCombo);
+    fliesCombo = Math.min(12, fliesCombo+1);
+    frogCroak(0.65);
+  }else{
+    fliesMiss++;
+    fliesCombo = 1;
+  }
+});
+
+document.getElementById("fliesStart").addEventListener("click", ()=>{
+  uiBeep();
+  fliesRun=true; fliesReset();
+});
+document.getElementById("fliesStop").addEventListener("click", ()=>{
+  uiBeep();
+  fliesRun=false;
+});
+
+/* =========================
+  MINI GAME 2: SWAMP MEMORY (pads)
+========================= */
+const padsC = document.getElementById("pads");
+const p2 = padsC.getContext("2d");
+const padsHud = document.getElementById("padsHud");
+let padsRun=false, padsStartT=0, padsScore=0, padsRound=0;
+let padsNodes=[], padsSeq=[], padsInput=[], padsPhase="idle", padsFlashIndex=0, padsNextFlash=0;
+
+function padsMakeNodes(){
+  padsNodes = [];
+  for(let i=0;i<6;i++){
+    padsNodes.push({ id:i, x: rand(140, 820), y: rand(120, 420), r: rand(40, 62) });
+  }
+}
+function padsReset(){
+  padsScore=0; padsRound=0;
+  padsSeq=[]; padsInput=[];
+  padsPhase="show";
+  padsFlashIndex=0;
+  padsStartT = performance.now();
+  padsMakeNodes();
+  padsAddStep();
+  padsNextFlash = performance.now()+700;
+  padsHud.textContent = "Раунд: 1 · Очки: 0 · Время: 45";
+}
+function padsAddStep(){
+  const next = Math.floor(Math.random()*padsNodes.length);
+  padsSeq.push(next);
+  padsInput=[];
+  padsRound = padsSeq.length;
+  padsPhase="show";
+  padsFlashIndex=0;
+  padsNextFlash = performance.now()+700;
+}
+function padsEnd(win=false){
+  padsRun=false;
+  const mul = (1 + (state.minigameBonus||0)) * eventMiniMultiplier();
+  const payout = Math.round(padsScore * mul);
+  state.points += payout;
+  if(win) state.meta.padsWins = (state.meta.padsWins||0) + 1;
+  toast("Память завершена", `+${payout} очков (x${mul.toFixed(2)})`, "MINI GAME");
+  if(win) dailySetProg("padsWin", 1);
+  save(); updateUI();
+}
+function drawPads(){
+  p2.clearRect(0,0,960,540);
+  const now = performance.now();
+  const secLeft = Math.max(0, 45 - Math.floor((now - padsStartT)/1000));
+
+  // bg
+  const g = p2.createLinearGradient(0,0,960,540);
+  g.addColorStop(0,"rgba(26,200,255,0.10)");
+  g.addColorStop(1,"rgba(53,240,163,0.06)");
+  p2.fillStyle=g; p2.fillRect(0,0,960,540);
+
+  // auto show sequence flashes
+  let flashId = -1;
+  if(padsPhase==="show"){
+    if(now > padsNextFlash){
+      padsNextFlash = now + 550;
+      padsFlashIndex++;
+      if(padsFlashIndex > padsSeq.length*2){
+        padsPhase="input";
+      }
+    }
+    const step = Math.floor(padsFlashIndex/2);
+    const on = padsFlashIndex%2===1;
+    if(step < padsSeq.length && on) flashId = padsSeq[step];
+  }
+
+  // nodes
+  for(const n of padsNodes){
+    const isFlash = (n.id===flashId);
+    const isInputLast = (padsInput.length>0 && padsInput[padsInput.length-1]===n.id);
+    const glow = isFlash ? 1 : (isInputLast ? 0.55 : 0);
+
+    // shadow
+    p2.save();
+    p2.translate(n.x, n.y+18);
+    p2.scale(1.15, 0.65);
+    const sh = p2.createRadialGradient(0,0, 10, 0,0, n.r*1.5);
+    sh.addColorStop(0,"rgba(0,0,0,0.22)");
+    sh.addColorStop(1,"rgba(0,0,0,0)");
+    p2.fillStyle=sh;
+    p2.beginPath(); p2.ellipse(0,0, n.r*1.2, n.r, 0,0,Math.PI*2); p2.fill();
+    p2.restore();
+
+    const pg = p2.createRadialGradient(n.x-n.r*0.3, n.y-n.r*0.3, 10, n.x, n.y, n.r*1.4);
+    pg.addColorStop(0, glow ? "rgba(255,209,102,0.35)" : "rgba(255,255,255,0.10)");
+    pg.addColorStop(0.3, "rgba(53,240,163,0.22)");
+    pg.addColorStop(1, "rgba(10,30,25,0.85)");
+    p2.fillStyle=pg;
+    p2.beginPath(); p2.ellipse(n.x,n.y, n.r*1.1, n.r, 0,0,Math.PI*2); p2.fill();
+
+    p2.strokeStyle = glow ? "rgba(255,209,102,0.95)" : "rgba(255,255,255,0.22)";
+    p2.lineWidth = glow ? 5 : 2;
+    p2.beginPath(); p2.ellipse(n.x,n.y, n.r*1.1, n.r, 0,0,Math.PI*2); p2.stroke();
+  }
+
+  padsHud.textContent = `Раунд: ${padsRound} · Очки: ${padsScore} · Фаза: ${padsPhase==="show"?"показ":"ввод"} · Время: ${secLeft}`;
+
+  if(secLeft<=0) padsEnd(false);
+}
+padsC.addEventListener("pointerdown",(e)=>{
+  if(!padsRun) return;
+  if(padsPhase!=="input") return;
+
+  const rect = padsC.getBoundingClientRect();
+  const x = (e.clientX-rect.left)/rect.width*960;
+  const y = (e.clientY-rect.top)/rect.height*540;
+
+  let hit=null;
+  for(const n of padsNodes){
+    const d=Math.hypot(x-n.x, y-n.y);
+    if(d <= n.r*1.1){ hit=n; break; }
+  }
+  if(!hit) return;
+
+  padsInput.push(hit.id);
+  frogCroak(0.55);
+
+  // check correctness so far
+  const idx = padsInput.length-1;
+  if(padsSeq[idx] !== hit.id){
+    // mistake: lose points
+    padsScore = Math.max(0, padsScore - 40);
+    padsPhase="show";
+    padsFlashIndex=0;
+    padsNextFlash = performance.now()+800;
+    toastOnce("pads_miss_"+Math.floor(performance.now()/1000), "Ошибка", "Маршрут сброшен, попробуй снова", "GAME", 1200);
+    return;
+  }
+
+  // complete round
+  if(padsInput.length === padsSeq.length){
+    const gain = 80 + padsSeq.length*35;
+    padsScore += gain;
+    // next round, harder
+    if(padsSeq.length >= 10){
+      padsEnd(true);
+      return;
+    }
+    padsAddStep();
+  }
+});
+
+document.getElementById("padsStart").addEventListener("click", ()=>{
+  uiBeep();
+  padsRun=true; padsReset();
+});
+document.getElementById("padsStop").addEventListener("click", ()=>{
+  uiBeep();
+  padsRun=false;
+});
+
+/* =========================
+  MINI GAME 3: RAID RUNNER
+========================= */
+const raidC = document.getElementById("raid");
+const r2 = raidC.getContext("2d");
+const raidHud = document.getElementById("raidHud");
+let raidRun=false, raidStartT=0;
+let player, obstacles=[], coins=[], raidScore=0, raidLives=3, raidSpeed=260;
+
+function raidReset(){
+  raidScore=0; raidLives=3; raidSpeed=260;
+  obstacles=[]; coins=[];
+  raidStartT=performance.now();
+  player={ x:140, y:420, vy:0, onGround:true, r:22 };
+  raidHud.textContent="Очки: 0 · Жизни: 3 · Время: 40";
+}
+function raidJump(){
+  if(!raidRun) return;
+  if(player.onGround){
+    player.vy = -520;
+    player.onGround=false;
+    frogCroak(0.6);
+  }
+}
+function spawnObstacle(){
+  const h = rand(40,110);
+  obstacles.push({ x:980, y:480-h, w: rand(26,44), h });
+}
+function spawnCoin(){
+  coins.push({ x:980, y: rand(280,420), r: 10 });
+}
+function raidEnd(){
+  raidRun=false;
+  const mul = (1 + (state.minigameBonus||0)) * eventMiniMultiplier();
+  const payout = Math.round(raidScore * mul);
+  state.points += payout;
+  state.meta.raidBest = Math.max(state.meta.raidBest||0, raidScore);
+  toast("Рейд завершён", `+${payout} очков (x${mul.toFixed(2)})`, "MINI GAME");
+  // daily: raidScore target
+  dailySetProg("raidScore", raidScore);
+  save(); updateUI();
+}
+function drawRaid(){
+  r2.clearRect(0,0,960,540);
+  const now=performance.now();
+  const secLeft = Math.max(0, 40 - Math.floor((now-raidStartT)/1000));
+
+  // bg
+  const g=r2.createLinearGradient(0,0,960,540);
+  g.addColorStop(0,"rgba(26,200,255,0.08)");
+  g.addColorStop(1,"rgba(53,240,163,0.06)");
+  r2.fillStyle=g; r2.fillRect(0,0,960,540);
+
+  // ground
+  r2.fillStyle="rgba(0,0,0,0.18)";
+  r2.fillRect(0,480,960,60);
+
+  // spawn
+  if(Math.random()<0.030) spawnObstacle();
+  if(Math.random()<0.040) spawnCoin();
+
+  // speed ramps
+  raidSpeed = Math.min(520, raidSpeed + 0.18);
+
+  // physics
+  const dt = 1/60;
+  player.vy += 980*dt;
+  player.y += player.vy*dt;
+  if(player.y >= 420){
+    player.y = 420; player.vy=0; player.onGround=true;
+  }
+
+  // move obstacles/coins
+  obstacles.forEach(o=>o.x -= raidSpeed*dt);
+  coins.forEach(c=>c.x -= raidSpeed*dt);
+
+  obstacles = obstacles.filter(o=>o.x > -80);
+  coins = coins.filter(c=>c.x > -40);
+
+  // collisions
+  for(const o of obstacles){
+    const px=player.x, py=player.y;
+    const cx = clamp(px, o.x, o.x+o.w);
+    const cy = clamp(py, o.y, o.y+o.h);
+    const d = Math.hypot(px-cx, py-cy);
+    if(d < player.r){
+      // hit
+      obstacles.splice(obstacles.indexOf(o),1);
+      raidLives--;
+      raidScore = Math.max(0, raidScore-120);
+      toastOnce("raid_hit_"+Math.floor(now/700), "Удар!", "Минус жизнь", "RAID", 900);
+      if(raidLives<=0){ raidEnd(); return; }
+      break;
+    }
+  }
+  for(const c of coins){
+    const d=Math.hypot(player.x-c.x, player.y-c.y);
+    if(d < player.r + c.r){
+      coins.splice(coins.indexOf(c),1);
+      raidScore += 65;
+      frogCroak(0.5);
+      break;
+    }
+  }
+
+  // score over time
+  raidScore += 1;
+
+  // draw obstacles
+  r2.fillStyle="rgba(255,80,110,0.55)";
+  for(const o of obstacles){
+    r2.fillRect(o.x, o.y, o.w, o.h);
+  }
+
+  // draw coins
+  r2.fillStyle="rgba(255,209,102,0.85)";
+  for(const c of coins){
+    r2.beginPath(); r2.arc(c.x,c.y,c.r,0,Math.PI*2); r2.fill();
+  }
+
+  // player (tiny frog icon)
+  r2.save();
+  r2.translate(player.x, player.y);
+  r2.fillStyle="rgba(53,240,163,0.85)";
+  r2.beginPath(); r2.ellipse(0,0, 26, 20, 0, 0, Math.PI*2); r2.fill();
+  r2.fillStyle="rgba(255,255,255,0.9)";
+  r2.beginPath(); r2.ellipse(-8,-10, 7, 5, 0, 0, Math.PI*2); r2.fill();
+  r2.beginPath(); r2.ellipse( 8,-10, 7, 5, 0, 0, Math.PI*2); r2.fill();
+  r2.restore();
+
+  raidHud.textContent = `Очки: ${raidScore} · Жизни: ${raidLives} · Время: ${secLeft}`;
+
+  if(secLeft<=0){
+    // win if survived
+    state.meta.raidBest = Math.max(state.meta.raidBest||0, raidScore);
+    raidEnd();
+    return;
+  }
+}
+
+document.getElementById("raidStart").addEventListener("click", ()=>{
+  uiBeep();
+  raidRun=true; raidReset();
+});
+document.getElementById("raidStop").addEventListener("click", ()=>{
+  uiBeep();
+  raidRun=false;
+});
+raidC.addEventListener("pointerdown", ()=> raidJump());
+window.addEventListener("keydown",(e)=>{
+  if(e.code==="Space") raidJump();
+});
+
+/* =========================
+  MINI GAME LOOP
+========================= */
+function gamesLoop(){
+  if(fliesRun) drawFlies();
+  if(padsRun) drawPads();
+  if(raidRun) drawRaid();
+  requestAnimationFrame(gamesLoop);
+}
+
+/* =========================
+  DAILY: crit tracking hook
+========================= */
+let lastCrits = 0;
+setInterval(()=>{
+  if(state.stats.crits > lastCrits){
+    const diff = state.stats.crits - lastCrits;
+    dailyTick("crit", diff);
+    lastCrits = state.stats.crits;
+  }
+}, 300);
+
+/* =========================
+  MAIN DRAW LOOP
+========================= */
+function loop(){
+  drawFrog();
+  requestAnimationFrame(loop);
+}
+
+/* =========================
+  INIT
+========================= */
+load();
+
+// apply event crit bonus dynamically (display + click roll)
+const originalRollCrit = rollCrit;
+window.rollCrit = function(){
+  const bonus = eventCritBonus();
+  const chance = clamp(state.critChance + bonus, 0, 0.9);
+  return Math.random() < chance;
+};
+
+// profile init
+nickInput.value = state.account.nick || "";
+bioInput.value = state.account.bio || "";
+renderAvatar();
+
+// createdAt init
+state.meta.createdAt ||= Date.now();
+
+// daily init
+ensureDaily();
+
+// event init: if expired -> none
+if(state.event?.id && state.event.id!=="none" && Date.now() >= (state.event.until||0)){
+  state.event = {id:"none", until:0};
+}
+updateEventUI();
+
+// settings init
+initSettingsUI();
+restartAutosave();
+
+// unlock titles
+renderTitles();
+
+// initial UI
+updateUI(true);
+updateProfileMeta();
+
+// loops
+loop();
+gamesLoop();
+
+/* =========================
+  Helper: periodic checks
+========================= */
+setInterval(()=>{
+  // event expiry
+  if(state.event?.id && state.event.id!=="none" && Date.now() >= (state.event.until||0)){
+    state.event = {id:"none", until:0};
+    updateEventUI();
+    save();
+  }
+  // daily day switch
+  ensureDaily();
+  // achievements
+  checkAchievements();
+}, 1500);
+
+/* =========================
+  Safety: prevent “spam click” scroll on mobile
+========================= */
+document.addEventListener("touchmove", (e)=>{}, {passive:true});
+</script>
+</body>
+</html>
